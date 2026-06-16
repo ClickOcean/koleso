@@ -215,6 +215,7 @@ const BaseWheel = <T extends WheelItem>(props: BaseWheelProps<T>) => {
         return {
           changedDistance: 0,
           initialDistance: 0,
+          duration,
           animate: async () => {
             setIsSpinning(false);
           },

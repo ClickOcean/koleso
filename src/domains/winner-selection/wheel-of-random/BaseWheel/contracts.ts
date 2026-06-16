@@ -12,6 +12,7 @@ export interface SpinParams {
 export interface SpinResult {
   changedDistance: number;
   initialDistance: number;
+  duration: number;
   animate: () => Promise<void>;
 }
 

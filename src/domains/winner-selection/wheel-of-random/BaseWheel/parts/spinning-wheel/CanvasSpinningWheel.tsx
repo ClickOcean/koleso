@@ -176,6 +176,7 @@ const CanvasSpinningWheel: FC<CanvasSpinningWheelProps> = ({
         return {
           changedDistance,
           initialDistance,
+          duration,
           animate: () => animate(changedDistance, duration).then(() => undefined),
         };
       },

@@ -66,6 +66,25 @@ const initialAvailableSettings: SettingElements = {
   preview: true,
 };
 
+const getSpinDuration = ({
+  randomSpinConfig,
+  randomSpinEnabled,
+  spinTime,
+}: Pick<Wheel.Settings, 'randomSpinConfig' | 'randomSpinEnabled' | 'spinTime'>): number => {
+  if (!randomSpinEnabled) {
+    return spinTime ?? 20;
+  }
+
+  const min = Number(randomSpinConfig?.min);
+  const max = Number(randomSpinConfig?.max);
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return spinTime ?? 20;
+  }
+
+  return random.getInt(Math.min(min, max), Math.max(min, max));
+};
+
 export interface SpinStartCallbackParams {
   changedDistance: number;
   initialDistance: number;
@@ -264,8 +283,7 @@ const FullWheelUI = <TWheelItem extends WheelItem = WheelItem>({
 
   const onSpinClick = useCallback(
     async ({ randomnessSource }: Wheel.Settings) => {
-      const { min, max } = randomSpinConfig!;
-      const duration = (randomSpinEnabled ? random.getInt(min!, max!) : spinTime) ?? 20;
+      const duration = getSpinDuration({ randomSpinConfig, randomSpinEnabled, spinTime });
       const activeWheelItems = wheelController.current?.getItems() ?? [];
       let generatedRandomNumber: number | undefined;
 
@@ -344,7 +362,7 @@ const FullWheelUI = <TWheelItem extends WheelItem = WheelItem>({
         changedDistance: spinResult?.changedDistance ?? 0,
         initialDistance: spinResult?.initialDistance ?? 0,
         winnerItem: winnerItem as TWheelItem,
-        duration,
+        duration: spinResult?.duration ?? duration,
       });
 
       await spinResult?.animate();

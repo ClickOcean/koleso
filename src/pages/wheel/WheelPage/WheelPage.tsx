@@ -72,7 +72,9 @@ const WheelPage: FC = () => {
 
   const handleSpinStart = useCallback(
     (params: SpinStartCallbackParams) => {
-      broadcastSpin(params.changedDistance ?? 0, params.duration ?? 0, params.winnerItem?.id?.toString() ?? '');
+      const targetDistance = (params.initialDistance % 360) + params.changedDistance;
+
+      broadcastSpin(targetDistance, params.duration ?? 0, params.winnerItem?.id?.toString() ?? '');
     },
     [broadcastSpin],
   );
