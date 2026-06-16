@@ -191,8 +191,8 @@
       "connectionError": {
         "title": "Twitch Connection Error",
         "maxRewards": {
-          "description": "The channel has reached the maximum number of custom rewards allowed by Twitch.",
-          "fix": "Remove some existing rewards from your <1>Twitch rewards dashboard</1> before reconnecting."
+          "description": "Twitch allows up to 50 custom rewards per channel. Pointauc could not create its rewards because this channel has already reached that limit.",
+          "fix": "Delete a few unused rewards from your <1>Twitch rewards dashboard</1> or remove some pointauc rewards, then try enabling the integration again."
         },
         "invalidTitle": {
           "description": "One of the reward titles is empty or exceeds 45 characters.",

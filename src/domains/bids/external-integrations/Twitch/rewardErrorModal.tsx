@@ -10,11 +10,13 @@ import { store } from '@store';
 
 /**
  * Maps Twitch API error codes to i18n keys.
- * Only `CREATE_CUSTOM_REWARD_DUPLICATE_REWARD` is confirmed from a real API response.
+ * `CREATE_CUSTOM_REWARD_TOO_MANY_REWARDS` and `CREATE_CUSTOM_REWARD_DUPLICATE_REWARD`
+ * are confirmed from real API responses.
  * The remaining keys follow the same naming pattern but are not officially documented by Twitch
  * and should be verified against actual API responses before relying on them.
  */
 const TWITCH_ERROR_CODE_MAP: Record<string, string> = {
+  CREATE_CUSTOM_REWARD_TOO_MANY_REWARDS: 'maxRewards',
   CREATE_CUSTOM_REWARD_MAX_REWARDS: 'maxRewards', // unconfirmed
   ['The parameter "title" was malformed: the value must be less than or equal to 45']: 'invalidTitle', // unconfirmed
   CREATE_CUSTOM_REWARD_DUPLICATE_REWARD: 'duplicateTitle', // confirmed
