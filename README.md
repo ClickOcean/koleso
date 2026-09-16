@@ -1,86 +1,59 @@
-# Auction Service for Streamers (Frontend) – [pointauc.com](https://pointauc.com)
+# Колесо
 
-## 📖 User Guide (Comprehensive Feature Reference)
+Колесо для ежедневного выбора случайного сотрудника (например, того, кто желает всем хорошего дня после дейли).
+Все участники равновероятны, никто не выбывает. Каждая подтверждённая победа записывается в историю,
+чтобы можно было посмотреть, кто сколько раз выигрывал.
 
-The documentation below is aimed at streamers and viewers — it explains every feature of Pointauc in detail:
+Всё хранится локально в браузере (IndexedDB): список участников, история прокрутов и настройки колеса.
+Бэкенда нет.
 
-https://pointauc.com/docs/
+Проект выделен из [pointauc_frontend](https://github.com/Pointauc/pointauc_frontend): от него остались движок
+колеса, эффекты и музыкальное сопровождение прокрута.
 
-## 🛠️ Tech Stack (at a glance)
+## Возможности
 
-- **React 19 + Vite + TypeScript**
-- **Redux Toolkit** – global state management
-- **Mantine** – component library
-- **Socket.IO & Centrifuge** – real-time communication with the backend and external services
-- **i18next** – internationalisation
-- **Tailwind / CSS-Modules** – styling
+- Список участников: добавить (по одному или списком), переименовать, временно выключить, удалить.
+- Прокрут: кнопка «Крутить» или пробел; фиксированная или случайная длительность.
+- Музыка во время прокрута: свой аудиофайл или видео с YouTube, выбор фрагмента и громкости.
+- Шестнадцать визуальных тем (космос, Матрица, казино, синтвейв, аркада, хоррор, Новый год, терминал, стимпанк,
+  морская карта, стадион, светлый минимал, высший свет, пивная вечеринка, Солнечная система): меняется колесо,
+  фон, кнопки и панели.
+  У каждой темы своя эмблема в центре, можно поставить свою картинку.
+- Режим «только колесо»: панель и шапка прячутся одной кнопкой, Esc возвращает.
+- После прокрута: «Подтвердить» записывает победителя в историю, «Крутить ещё раз» — нет.
+- История: лента всех прокрутов по дням, кто и во сколько выпал; записи можно удалять.
+- Статистика: победы, доля, последняя победа, серии; за всё время / 30 дней / 7 дней.
 
-## 🚀 Getting Started
+## Запуск
 
-### Prerequisites
-
-- **Node.js >= 22**
-- **pnpm**
-
-### Installation & Development Server
-
-```bash
-# install dependencies
-pnpm install
-
-# start the dev server (Vite)
-pnpm dev
-```
-
-## 🔐 Authenticity Verification
-
-The code running on [pointauc.com](https://pointauc.com) can be verified against this repository. Each deployment generates SHA-256 hashes of all HTML, JS, and CSS files, published as an immutable [GitHub release](https://github.com/Pointauc/pointauc_frontend/releases) with the tag format `deploy-<commit-sha>`.
-
-### Verify Deployed Files
+Нужны Node.js 22+ и pnpm.
 
 ```bash
-# Clone the repository
-git clone https://github.com/Pointauc/pointauc_frontend.git
-cd pointauc_frontend
-
-# Install dependencies
 pnpm install
-
-# Verify the deployed files
-pnpm verify:authenticity
+pnpm dev        # http://localhost:3000
 ```
 
-This script downloads the hash manifest from the latest release, fetches each file from the live site, compares hashes, and shows which files match or differ
+Другие команды:
 
-### Why This Matters
+```bash
+pnpm build      # сборка в dist/
+pnpm preview    # просмотр собранного
+pnpm test       # unit-тесты (vitest)
+pnpm lint
+pnpm docker:up  # сборка и запуск в Docker на http://localhost:3000
+```
 
-- **Transparency**: Anyone can independently verify that the deployed website matches the source code
-- **Security**: Even if our server is compromised, you can detect unauthorized modifications
+## Документация
 
-### Important Note
+- [docs/architecture.md](./docs/architecture.md) — устройство приложения, поток прокрута, схема хранения.
+- [docs/history.md](./docs/history.md) — откуда взялся проект и какие решения приняты.
+- [docs/theme-authoring.md](./docs/theme-authoring.md) — как добавить новую тему колеса.
+- [AGENTS.md](./AGENTS.md) — правила для AI-агентов и людей, работающих с кодом.
 
-Pointeauc uses claudflare which may inject a script into the HTML files. The Cloudflare script provides DDoS protection and bot mitigation and doesn't affect the website functionality.
+## Стек
 
-If you want to verify the integrity of HTML files manually, you need to strip the claudflare script tag. This process is done AUTOMATICALLY by the verification script.
+React 19, Vite, TypeScript, Mantine, react-hook-form, TanStack Query, Dexie (IndexedDB), GSAP, i18next.
 
-## 📝 Contribution guidelines
+## Лицензия
 
-Contributions are welcome through issues and pull requests. By contributing to this
-repository, you agree that your contribution may be distributed as part of this
-project under the repository license.
-
-## 📄 License
-
-This repository is **source-available**, not open source.
-
-The code in this repository is licensed under **PolyForm Noncommercial 1.0.0**.
-You may use, modify, and share it for noncommercial purposes under the terms in
-[LICENSE](./LICENSE). Commercial use requires separate permission from the
-project owner.
-
-Please preserve the attribution notice in [NOTICE](./NOTICE) when redistributing
-the project or derivative works.
-
-## 💡 Suggestions & Bug Reports
-
-Found a bug or have an idea? Please [open an issue](https://github.com/Pointauc/pointauc_frontend/issues).
+Исходный проект распространяется под PolyForm Noncommercial 1.0.0, см. [LICENSE](./LICENSE).

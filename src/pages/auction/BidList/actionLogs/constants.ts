@@ -1,2 +1,0 @@
-export const ACTION_LOG_REVERT_ANIMATION_MS = 180;
-export const ACTION_LOG_ROW_HEIGHT = 118;

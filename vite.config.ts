@@ -1,13 +1,10 @@
 import path from 'path';
 
 import react from '@vitejs/plugin-react';
-import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { analyzer } from 'vite-bundle-analyzer';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -16,19 +13,7 @@ export default defineConfig({
         plugins: ['babel-plugin-react-compiler'],
       },
     }),
-    svgr(),
     tsconfigPaths(),
-    {
-      name: 'full-reload',
-      handleHotUpdate({ file, server }) {
-        if (/\.(scss|css)$/.test(file)) {
-          server.ws.send({ type: 'full-reload' });
-          return [];
-        }
-      },
-    },
-    // Bundle analyzer - only runs when ANALYZE env variable is set
-    ...(process.env.ANALYZE === 'true' ? [analyzer()] : []),
   ],
   css: {
     preprocessorOptions: {
@@ -41,49 +26,18 @@ export default defineConfig({
   server: {
     host: true,
     port: 3000,
-    open: true,
-    proxy: {
-      '^/api.*': 'http://localhost:8000',
-      '/socket.io': {
-        target: 'http://localhost:8000',
-        ws: true,
-      },
-    },
+    open: false,
   },
   build: {
-    chunkSizeWarningLimit: 2200,
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
-      onwarn(warning, warn) {
-        const isSignalrPureAnnotationWarning =
-          warning.code === 'INVALID_ANNOTATION' && warning.id?.includes('@microsoft+signalr');
-
-        if (isSignalrPureAnnotationWarning) {
-          return;
-        }
-
-        warn(warning);
-      },
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router', 'react-router-dom', 'react-redux'],
-          'vendor-mantine': [
-            '@mantine/core',
-            '@mantine/hooks',
-            '@mantine/notifications',
-            '@mantine/modals',
-            '@mantine/dropzone',
-          ],
-          'vendor-animation': ['framer-motion', 'gsap'],
-          'vendor-mui-icons': ['@mui/icons-material'],
+          'vendor-mantine': ['@mantine/core', '@mantine/hooks', '@mantine/notifications', '@mantine/dropzone'],
+          'vendor-gsap': ['gsap'],
         },
       },
     },
-  },
-  ssr: {
-    // Bundle all dependencies into the SSR bundle so Vite handles CJS→ESM
-    // conversion for each package. This is appropriate for a build-time
-    // prerender script (not a production server), where bundle size doesn't matter.
-    noExternal: true,
   },
   test: {
     environment: 'jsdom',

@@ -1,0 +1,61 @@
+.board {
+  display: flex;
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  gap: 40px;
+  min-height: 0;
+  height: 100%;
+}
+
+.wheelArea {
+  gap: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  min-width: calc(27rem * var(--mantine-scale));
+  width: calc(27rem * var(--mantine-scale));
+  height: 100%;
+  min-height: 0;
+}
+
+.sidebarExtra {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.emptyState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@media (max-width: 62em) {
+  .board {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+}

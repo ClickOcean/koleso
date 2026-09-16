@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Matrix core — генератор эмблемы ступицы</title>
+<style>
+  /* Шрифт заголовка «Матрицы» (public/fonts/matrix/matrix.ttf) вшит как data URL, чтобы страница
+     работала с file:// без сервера. Пересобрать: см. README.md рядом. */
+  @font-face {
+    font-family: 'Matrix Title';
+    src: url(data:font/ttf;base64,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) format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  body {
+    margin: 24px;
+    background: #050805;
+    color: #9fdf9f;
+    font-family: Consolas, 'Courier New', monospace;
+  }
+  h1 { font-size: 18px; font-weight: normal; color: #c6ffc6; margin: 0 0 16px; }
+  p.hint { font-size: 12px; color: #6a9a6a; margin: 0 0 20px; max-width: 900px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  figure { margin: 0; }
+  canvas { display: block; width: 512px; height: 512px; background: #000; }
+  figcaption { margin-top: 8px; font-size: 12px; color: #7cbf7c; width: 512px; line-height: 1.4; }
+  figcaption b { color: #c6ffc6; font-weight: normal; }
+  h2 { font-size: 14px; font-weight: normal; color: #9fdf9f; margin: 32px 0 12px; }
+  .hub {
+    width: 150px; height: 150px; border-radius: 100%;
+    background-position: center; background-size: cover; background-color: #000;
+    box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.25);
+  }
+  .hubs { display: flex; gap: 24px; align-items: center; }
+  .hubs span { font-size: 12px; color: #7cbf7c; display: block; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<h1>Matrix core — эмблема ступицы колеса (512×512)</h1>
+<p class="hint">
+  Три варианта рисуются процедурно на canvas 2D с фиксированным зерном PRNG (mulberry32), поэтому результат
+  воспроизводим. Всё за пределами вписанной окружности — чистый чёрный. В приложении ступица занимает 20 % колеса
+  (≈150 px), поэтому ниже есть уменьшенные превью.
+</p>
+
+<div class="row">
+  <figure>
+    <canvas id="rain" width="512" height="512"></canvas>
+    <figcaption><b>#rain</b> — диск цифрового дождя: ~45 колонок полуширинной катаканы и цифр, длинные затухающие
+      хвосты, яркие бело-зелёные головы, зелёная дымка, фосфорное кольцо у края, виньетка.</figcaption>
+  </figure>
+  <figure>
+    <canvas id="wordmark" width="512" height="512"></canvas>
+    <figcaption><b>#wordmark</b> — тот же дождь, приглушённый до 55 %, плюс слово MATRIX шрифтом «Matrix Title»
+      (~78 % ширины диска) с многослойным зелёным свечением и лёгкими CRT-скан-линиями.</figcaption>
+  </figure>
+  <figure>
+    <canvas id="pills" width="512" height="512"></canvas>
+    <figcaption><b>#pills</b> — приглушённый дождь плюс скрещённые красная и синяя капсулы (отсылка к выбору
+      Нео) с градиентными бликами и цветным свечением.</figcaption>
+  </figure>
+</div>
+
+<h2>Превью в масштабе ступицы (150 px, border-radius 100 %, background-size cover)</h2>
+<div class="hubs" id="hubs"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const SIZE = 512;
+  const C = SIZE / 2;
+  const DISC_R = 250; // радиус диска: снаружи — чистый чёрный
+  const RING_R = 240; // тонкое фосфорное кольцо чуть внутри края
+  const SEED = 0x4d545258; // 'MTRX'
+  const GREEN = '#00ff41';
+  const GREEN_CORE = '#c6ffc6';
+  const GLYPHS = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾓﾗﾘﾙﾚﾛﾜﾝ0123456789';
+  const GLYPH_FONT =
+    '"MS Gothic", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans Mono CJK JP", "Hiragino Kaku Gothic ProN", monospace';
+
+  /** Детерминированный PRNG (mulberry32), [0, 1). */
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function clipDisc(ctx) {
+    ctx.beginPath();
+    ctx.arc(C, C, DISC_R, 0, Math.PI * 2);
+    ctx.clip();
+  }
+
+  /** Один слой дождя: колонки глифов с головой и затухающим хвостом. */
+  function drawRainLayer(ctx, rnd, o) {
+    ctx.font = `bold ${o.fontSize}px ${GLYPH_FONT}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < o.cols; i++) {
+      const x = i * o.colW + o.colW / 2 + o.shift;
+      const trails = rnd() < o.doubleChance ? 2 : 1;
+      for (let t = 0; t < trails; t++) {
+        const headY = -20 + rnd() * (SIZE + 40);
+        const len = Math.round(o.lenMin + rnd() * (o.lenMax - o.lenMin));
+        const bright = 0.5 + rnd() * 0.5; // колонки разной яркости
+        const hasHead = rnd() < o.headChance;
+        for (let k = 0; k < len; k++) {
+          const y = headY - k * o.rowH;
+          if (y < -o.rowH) break;
+          const fade = Math.pow(1 - k / len, 1.5);
+          const flicker = 0.6 + rnd() * 0.4; // мерцание отдельных глифов
+          const glyph = GLYPHS[Math.floor(rnd() * GLYPHS.length)];
+          if (y > SIZE + o.rowH) continue;
+          if (k === 0 && hasHead) {
+            // Яркая бело-зелёная голова со свечением
+            ctx.shadowColor = GREEN;
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = `rgba(0,255,65,${o.alpha})`;
+            ctx.fillText(glyph, x, y);
+            ctx.shadowBlur = 6;
+            ctx.fillStyle = `rgba(232,255,236,${o.alpha})`;
+            ctx.fillText(glyph, x, y);
+            ctx.shadowBlur = 0;
+          } else {
+            const a = o.alpha * bright * fade * flicker;
+            if (a < 0.02) continue;
+            ctx.shadowColor = GREEN;
+            ctx.shadowBlur = hasHead && k < 3 ? 6 : 0;
+            ctx.fillStyle = `rgba(${o.rgb},${a.toFixed(3)})`;
+            ctx.fillText(glyph, x, y);
+          }
+        }
+      }
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  /** Диск дождя рисуется один раз в offscreen-канвас и используется всеми вариантами. */
+  function renderRain() {
+    const cv = document.createElement('canvas');
+    cv.width = SIZE;
+    cv.height = SIZE;
+    const ctx = cv.getContext('2d');
+    const rnd = mulberry32(SEED);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.save();
+    clipDisc(ctx);
+    const cols = 45;
+    const colW = SIZE / cols;
+    // Дальний тусклый слой — глубина
+    drawRainLayer(ctx, rnd, {
+      cols, colW, shift: colW / 2, fontSize: 11, rowH: 12,
+      alpha: 0.3, rgb: '0,170,45', headChance: 0, doubleChance: 0.2, lenMin: 8, lenMax: 22,
+    });
+    // Основной слой
+    drawRainLayer(ctx, rnd, {
+      cols, colW, shift: 0, fontSize: 13, rowH: 14,
+      alpha: 1, rgb: '0,255,65', headChance: 0.3, doubleChance: 0.35, lenMin: 12, lenMax: 34,
+    });
+    ctx.restore();
+    return cv;
+  }
+
+  /** Чёрный фон, дождь с заданной яркостью и мягкая зелёная дымка. */
+  function composeBase(ctx, rain, dim) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.save();
+    clipDisc(ctx);
+    ctx.globalAlpha = dim;
+    ctx.drawImage(rain, 0, 0);
+    ctx.globalAlpha = 1;
+    const haze = ctx.createRadialGradient(C, C, 0, C, C, DISC_R);
+    haze.addColorStop(0, 'rgba(0,255,65,0.16)');
+    haze.addColorStop(0.55, 'rgba(0,255,65,0.06)');
+    haze.addColorStop(1, 'rgba(0,255,65,0)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.restore();
+  }
+
+  /** Тёмная подложка под мотивом, чтобы он не спорил с дождём. */
+  function drawBacking(ctx, rx, ry, alpha) {
+    ctx.save();
+    ctx.translate(C, C);
+    ctx.scale(1, ry / rx);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    g.addColorStop(0, `rgba(0,0,0,${alpha})`);
+    g.addColorStop(0.6, `rgba(0,0,0,${alpha * 0.7})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(-SIZE, -SIZE, SIZE * 2, SIZE * 2);
+    ctx.restore();
+  }
+
+  /** Скан-линии (опционально), виньетка к краю и фосфорное кольцо. */
+  function finishDisc(ctx, opts) {
+    ctx.save();
+    clipDisc(ctx);
+    if (opts.scanlines) {
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      for (let y = 0; y < SIZE; y += 3) ctx.fillRect(0, y, SIZE, 1);
+    }
+    const vig = ctx.createRadialGradient(C, C, DISC_R * 0.55, C, C, DISC_R);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,0,0.8)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.shadowColor = GREEN;
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,255,65,0.9)';
+    ctx.beginPath();
+    ctx.arc(C, C, RING_R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  /** Слово MATRIX шрифтом заголовка, ~78 % ширины диска, фосфорное свечение слоями. */
+  function drawWordmark(ctx) {
+    const text = 'MATRIX';
+    const targetW = SIZE * 0.78;
+    ctx.font = '100px "Matrix Title"';
+    const w100 = ctx.measureText(text).width;
+    const fontSize = Math.floor((100 * targetW) / w100);
+    ctx.font = `${fontSize}px "Matrix Title"`;
+    const m = ctx.measureText(text);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const y = C + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+    const h = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+
+    drawBacking(ctx, targetW * 0.62, h * 1.6, 0.75);
+
+    ctx.save();
+    // Тёмная широкая обводка под свечением — отделяет буквы от дождя
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = 'rgba(0,18,5,0.9)';
+    ctx.strokeText(text, C, y);
+    // Свечение слоями
+    ctx.shadowColor = GREEN;
+    ctx.fillStyle = GREEN;
+    [[48, 0.6], [24, 0.85], [10, 1]].forEach(([blur, alpha]) => {
+      ctx.shadowBlur = blur;
+      ctx.globalAlpha = alpha;
+      ctx.fillText(text, C, y);
+    });
+    // Светлое ядро
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = GREEN_CORE;
+    ctx.fillText(text, C, y);
+    ctx.restore();
+  }
+
+  /** Капсула: два цвета, градиент поперёк оси, шов, блик и цветное свечение. */
+  function drawPill(ctx, o) {
+    ctx.save();
+    ctx.translate(C, C);
+    ctx.rotate(o.angle);
+    const r = o.thick / 2;
+    const path = () => {
+      ctx.beginPath();
+      ctx.roundRect(-o.length / 2, -r, o.length, o.thick, r);
+    };
+    // Свечение
+    ctx.shadowColor = o.glow;
+    ctx.fillStyle = o.base;
+    ctx.shadowBlur = 40;
+    path();
+    ctx.fill();
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Тело
+    const g = ctx.createLinearGradient(0, -r, 0, r);
+    g.addColorStop(0, o.hi);
+    g.addColorStop(0.32, o.base);
+    g.addColorStop(1, o.dark);
+    ctx.fillStyle = g;
+    path();
+    ctx.fill();
+    // Шов и блик — внутри контура
+    ctx.save();
+    path();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    ctx.fillRect(-3, -r, 5, o.thick);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(2, -r, 2, o.thick);
+    ctx.beginPath();
+    ctx.ellipse(-o.length * 0.14, -r * 0.55, o.length * 0.34, r * 0.2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(o.length * 0.3, -r * 0.55, o.length * 0.12, r * 0.18, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fill();
+    ctx.restore();
+    // Тёмная кромка
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    path();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPills(ctx) {
+    drawBacking(ctx, 190, 190, 0.7);
+    const length = 262;
+    const thick = 74;
+    drawPill(ctx, {
+      angle: -Math.PI / 5, length, thick,
+      hi: '#8fbcff', base: '#1f5eff', dark: '#071e6e', glow: 'rgba(60,120,255,0.95)',
+    });
+    drawPill(ctx, {
+      angle: Math.PI / 5, length, thick,
+      hi: '#ff8a8a', base: '#e8122e', dark: '#6e0010', glow: 'rgba(255,40,60,0.95)',
+    });
+  }
+
+  function main() {
+    const rain = renderRain();
+
+    const rainCtx = document.getElementById('rain').getContext('2d');
+    composeBase(rainCtx, rain, 1);
+    finishDisc(rainCtx, { scanlines: false });
+
+    const wordCtx = document.getElementById('wordmark').getContext('2d');
+    composeBase(wordCtx, rain, 0.55);
+    drawWordmark(wordCtx);
+    finishDisc(wordCtx, { scanlines: true });
+
+    const pillsCtx = document.getElementById('pills').getContext('2d');
+    composeBase(pillsCtx, rain, 0.55);
+    drawPills(pillsCtx);
+    finishDisc(pillsCtx, { scanlines: false });
+
+    // Превью в масштабе ступицы
+    const hubs = document.getElementById('hubs');
+    ['rain', 'wordmark', 'pills'].forEach((id) => {
+      const wrap = document.createElement('div');
+      const hub = document.createElement('div');
+      hub.className = 'hub';
+      hub.style.backgroundImage = `url(${document.getElementById(id).toDataURL('image/png')})`;
+      const label = document.createElement('span');
+      label.textContent = `#${id}`;
+      wrap.appendChild(hub);
+      wrap.appendChild(label);
+      hubs.appendChild(wrap);
+    });
+    document.documentElement.dataset.ready = '1';
+  }
+
+  // Шрифт заголовка загружается лениво — сначала запрашиваем его, потом ждём готовности всех шрифтов.
+  Promise.all([document.fonts.load('100px "Matrix Title"'), document.fonts.ready])
+    .then(main)
+    .catch((err) => {
+      console.error('Matrix core: не удалось дождаться шрифтов', err);
+      main();
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Font: "Matrix" (matrix.ttf), family name "matrix"
+Author: Audun Larsson Kleveland
+Source: https://www.dafont.com/matrix.font (downloaded 2026-09-16)
+License: Donationware (free to use, the author welcomes donations)
+Notes: capitals only (lowercase maps to the same capital glyphs), no digits,
+no Cyrillic. Used by the "matrix" wheel theme under the CSS family name
+"Matrix Title"; other scripts fall back to the monospace stack.

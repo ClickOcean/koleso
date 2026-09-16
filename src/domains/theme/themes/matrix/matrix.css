@@ -1,0 +1,13 @@
+/*
+ * Титульный шрифт «Матрицы»: public/fonts/matrix/matrix.ttf, лицензия рядом в LICENSE.txt.
+ * Только капитель, без цифр и кириллицы, поэтому используется лишь в заголовках и подписях
+ * секторов; остальной интерфейс остаётся на моноширинном стеке. Подключается побочным импортом
+ * из theme.ts, так что регистрируется вместе с реестром тем.
+ */
+@font-face {
+  font-family: 'Matrix Title';
+  src: url('/fonts/matrix/matrix.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

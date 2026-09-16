@@ -23,13 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
-docs/.vitepress/cache
-docs/.vitepress/dist
 
 .env
 .env.local
 .env.production
 
-nginx/private-nginx.conf
 
-dev-docs/
+
+.playwright-mcp

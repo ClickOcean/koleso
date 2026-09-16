@@ -1,0 +1,29 @@
+.shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  background-color: var(--mantine-color-body);
+}
+
+.header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 8px 24px;
+  border-bottom: 1px solid var(--theme-panel-border, rgba(255, 255, 255, 0.06));
+  flex-shrink: 0;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  padding: 16px 24px 16px 32px;
+  overflow: hidden;
+}

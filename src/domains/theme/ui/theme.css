@@ -1,0 +1,53 @@
+/*
+ * Theme hooks for UI outside the wheel canvas. Values come from `--theme-*`
+ * custom properties that ThemeRoot writes onto <html> from the active theme.
+ */
+
+.base-wheel-wrapper h2,
+.wheel-winner-name {
+  font-family: var(--theme-heading-font, inherit);
+  color: var(--theme-heading-color, inherit);
+  text-shadow: var(--theme-heading-glow, none);
+}
+
+.theme-ui {
+  font-family: var(--theme-ui-font, inherit);
+}
+
+.theme-panel {
+  background: var(--theme-panel-bg) !important;
+  border-color: var(--theme-panel-border) !important;
+  backdrop-filter: blur(var(--theme-panel-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--theme-panel-blur, 0px));
+}
+
+.theme-spin-button {
+  font-family: var(--theme-heading-font, inherit);
+  border-radius: var(--theme-button-radius, var(--mantine-radius-default));
+  box-shadow: var(--theme-button-glow, none);
+  transition: box-shadow 200ms ease;
+}
+
+.presentation-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+  opacity: 0.45;
+  transition: opacity 150ms ease;
+}
+
+.presentation-toggle:hover {
+  opacity: 1;
+}
+
+/* Beer party: the photo bottle sways a little around its neck */
+@keyframes beer-bottle-wobble {
+  0%,
+  100% {
+    transform: translate(-50%, -34%) rotate(180deg);
+  }
+  50% {
+    transform: translate(-50%, -34%) rotate(176deg);
+  }
+}

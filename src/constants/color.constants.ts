@@ -1,10 +1,4 @@
-import { PurchaseStatusEnum } from '@models/purchase';
-
 export const COLORS = {
-  PURCHASE_STATUS: {
-    [PurchaseStatusEnum.Deleted]: '#F08080',
-    [PurchaseStatusEnum.Processed]: '#AED581',
-  },
   THEME: {
     PRIMARY: '#228be6',
     BACKGROUND_TONE: '#242424',
@@ -48,21 +42,5 @@ export const COLORS = {
     '#E3904C',
     '#C94D51',
     '#5B4749',
-  ],
-  TWITCH_VIEWER: [
-    '#6a45af',
-    '#008000',
-    '#da2e2e',
-    '#ff7f50',
-    '#9acd32',
-    '#ff4500',
-    '#2e8b57',
-    '#daa520',
-    '#5f9ea0',
-    '#1e90ff',
-    '#ff69b4',
-    '#00ff7f',
-    '#983eec',
-    '#3535ff',
   ],
 };
