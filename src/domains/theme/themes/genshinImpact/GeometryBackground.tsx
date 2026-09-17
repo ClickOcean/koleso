@@ -3,6 +3,8 @@ import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import { useEffect, useMemo, useState } from 'react';
 
+import DeepSpaceBackdrop from './DeepSpaceBackdrop';
+
 let initializeParticlesPromise: Promise<void> | null = null;
 
 const initializeParticles = (): Promise<void> => {
@@ -29,7 +31,8 @@ const PARTICLE_OPTIONS: ISourceOptions = {
       color: '#b8f3ff',
       distance: 145,
       enable: true,
-      opacity: 0.24,
+      // a touch softer than the 0.24 of the gradient-only look so the lines sit well on the photo
+      opacity: 0.21,
       triangles: { enable: true, color: '#69e6ff', opacity: 0.025 },
       width: 1,
     },
@@ -52,9 +55,16 @@ const PARTICLE_OPTIONS: ISourceOptions = {
 
 /**
  * Full-screen "constellations" backdrop: slow-moving hexagon particles linked
- * by thin lines over a deep-space gradient. Rendered once behind the page.
+ * by thin lines over the shared deep-space photo (`DeepSpaceBackdrop`), with the
+ * old gradient underneath as the look while the photo loads or when it is
+ * missing. Rendered once behind the page.
  */
-const GeometryBackground = () => {
+interface GeometryBackgroundProps {
+  /** Подложить общее фото глубокого космоса (`DeepSpaceBackdrop`); тема «Обычный» живёт без него. */
+  photo?: boolean;
+}
+
+const GeometryBackground = ({ photo = false }: GeometryBackgroundProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const options = useMemo(() => PARTICLE_OPTIONS, []);
 
@@ -74,6 +84,8 @@ const GeometryBackground = () => {
 
   return (
     <div className='absolute inset-0 z-0 h-full w-full overflow-hidden bg-[radial-gradient(circle_at_18%_20%,rgba(105,230,255,0.16),transparent_30%),linear-gradient(135deg,#090b12_0%,#181324_52%,#0a1317_100%)]'>
+      {/* photo first in DOM order: the particles canvas below paints on top of it */}
+      {photo ? <DeepSpaceBackdrop /> : null}
       {isInitialized ? (
         <Particles id='geometry-background' className='absolute inset-0 h-full w-full' options={options} />
       ) : null}

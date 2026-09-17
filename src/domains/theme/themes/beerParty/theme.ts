@@ -7,6 +7,8 @@ import BeerPartyPointer from './BeerPartyPointer';
 import BeerPartyWheel from './BeerPartyWheel';
 import { BEER_AMBER, BEER_CREAM, BEER_FONT } from './beerPartyTokens';
 
+import './beerParty.css';
+
 /**
  * Trashy beer party: sectors poured as lager, amber, copper and stout, a foam rim with
  * bottle caps stuck in it, a beer bottle for a pointer, flies, and a living room that

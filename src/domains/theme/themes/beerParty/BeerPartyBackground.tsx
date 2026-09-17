@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 
 const FRAME_INTERVAL = 55; // ~18 fps
-const MEASURE_INTERVAL = 1000;
+const MEASURE_INTERVAL = 200;
+/** The wheel is laid out a moment after mount; one early re-measure fixes the left strip without waiting a second */
+const FIRST_MEASURE_DELAY = 250;
 const PUFF_COUNT = 16;
 const FLY_COUNT = 2;
 const IMAGE_WIDTH = 1344;
@@ -14,6 +16,18 @@ const MAN_ANCHOR = 0.77;
 const MAN_SCREEN_X_WITH_SIDEBAR = 0.685;
 const MAN_SCREEN_X_FULL = 0.8;
 const BACKGROUND_IMAGE = '/themes/beerParty/background.jpg';
+/** Portrait picture of the coffee table (956 × 1440) for the strip left of the wheel */
+const TABLE_IMAGE = '/themes/beerParty/left.jpg';
+const TABLE_WIDTH = 956;
+const TABLE_HEIGHT = 1440;
+/** The strip fades out over this many px on its right edge, so there is no seam next to the wheel */
+const TABLE_FADE = 120;
+/** Below this strip width (tiny window) the picture is skipped */
+const TABLE_MIN_WIDTH = 140;
+/** Share of the viewport left of the wheel when the wheel cannot be measured */
+const TABLE_FALLBACK_SHARE = 0.22;
+/** The foam head sticks out past the wheel box by about this share of the wheel size */
+const WHEEL_OVERHANG = 0.045;
 const WALL = '#211a10';
 const TWO_PI = 2 * Math.PI;
 
@@ -54,9 +68,30 @@ interface Scene {
   grillY: number;
   /** Screen x of the man, the brightest spot of the picture */
   manX: number;
+  /** Width of the strip between the viewport's left edge and the wheel, where the coffee table goes */
+  tableWidth: number;
+}
+
+interface Pictures {
+  room: HTMLImageElement | null;
+  table: HTMLImageElement | null;
 }
 
 const checkHasSidebar = (): boolean => document.querySelector('.theme-panel') != null;
+
+/**
+ * Screen x of the wheel's left edge (minus the foam overhang), measured from the wheel
+ * box like `SolarSystemBackground.measureWheel`. Before the wheel has a layout the box
+ * is an empty full-width div, so only a square box counts; otherwise a fixed share of
+ * the viewport stands in.
+ */
+const measureTableWidth = (width: number): number => {
+  const rect = document.querySelector('[class*="wheelContent"]')?.getBoundingClientRect();
+  const isWheelLaidOut = rect != null && rect.width > 40 && Math.abs(rect.width - rect.height) < 2;
+  const edge = isWheelLaidOut ? rect.left - rect.width * WHEEL_OVERHANG : width * TABLE_FALLBACK_SHARE;
+
+  return Math.round(Math.min(width, Math.max(0, edge)));
+};
 
 /**
  * The picture is scaled to the viewport height and slid so that the man in the
@@ -84,10 +119,60 @@ const measureScene = (width: number, height: number): Scene => {
     grillX: offsetX + GRILL.x * drawnWidth,
     grillY: offsetY + GRILL.y * drawnHeight,
     manX: offsetX + MAN_ANCHOR * drawnWidth,
+    tableWidth: measureTableWidth(width),
   };
 };
 
-const paintScene = (ctx: CanvasRenderingContext2D, image: HTMLImageElement | null, scene: Scene): void => {
+/**
+ * The coffee table in the strip left of the wheel: scaled to cover the strip (cropped
+ * around the picture's centre), dimmed to about 70 % and faded out on its right edge.
+ * Composed on its own canvas so the fade erases the picture only, not the wall below.
+ */
+const paintTable = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, scene: Scene): void => {
+  const { tableWidth, height } = scene;
+  if (tableWidth < TABLE_MIN_WIDTH) {
+    return;
+  }
+
+  const strip = document.createElement('canvas');
+  strip.width = tableWidth;
+  strip.height = height;
+  const stripCtx = strip.getContext('2d');
+  if (!stripCtx) {
+    return;
+  }
+
+  const factor = Math.max(height / TABLE_HEIGHT, tableWidth / TABLE_WIDTH);
+  const sourceWidth = tableWidth / factor;
+  const sourceHeight = height / factor;
+  stripCtx.drawImage(
+    image,
+    (TABLE_WIDTH - sourceWidth) / 2,
+    (TABLE_HEIGHT - sourceHeight) / 2,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    tableWidth,
+    height,
+  );
+
+  stripCtx.fillStyle = 'rgba(18, 12, 6, 0.3)';
+  stripCtx.fillRect(0, 0, tableWidth, height);
+
+  const fade = Math.min(TABLE_FADE, tableWidth * 0.5);
+  const mask = stripCtx.createLinearGradient(tableWidth - fade, 0, tableWidth, 0);
+  mask.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  mask.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
+  mask.addColorStop(1, 'rgba(0, 0, 0, 1)');
+  stripCtx.globalCompositeOperation = 'destination-out';
+  stripCtx.fillStyle = mask;
+  stripCtx.fillRect(tableWidth - fade, 0, fade, height);
+
+  ctx.drawImage(strip, 0, 0);
+};
+
+const paintScene = (ctx: CanvasRenderingContext2D, pictures: Pictures, scene: Scene): void => {
   const { width, height, offsetX, offsetY, drawnWidth, drawnHeight } = scene;
 
   ctx.fillStyle = WALL;
@@ -101,8 +186,8 @@ const paintScene = (ctx: CanvasRenderingContext2D, image: HTMLImageElement | nul
   ctx.fillStyle = lamp;
   ctx.fillRect(0, 0, width, height);
 
-  if (image) {
-    ctx.drawImage(image, offsetX, offsetY, drawnWidth, drawnHeight);
+  if (pictures.room) {
+    ctx.drawImage(pictures.room, offsetX, offsetY, drawnWidth, drawnHeight);
 
     // continue the wall to the right with a mirrored, dimmed copy
     const rightEdge = offsetX + drawnWidth;
@@ -110,7 +195,7 @@ const paintScene = (ctx: CanvasRenderingContext2D, image: HTMLImageElement | nul
       ctx.save();
       ctx.translate(rightEdge + drawnWidth, 0);
       ctx.scale(-1, 1);
-      ctx.drawImage(image, 0, offsetY, drawnWidth, drawnHeight);
+      ctx.drawImage(pictures.room, 0, offsetY, drawnWidth, drawnHeight);
       ctx.restore();
       ctx.fillStyle = 'rgba(18, 12, 6, 0.55)';
       ctx.fillRect(rightEdge, 0, width - rightEdge, height);
@@ -129,6 +214,11 @@ const paintScene = (ctx: CanvasRenderingContext2D, image: HTMLImageElement | nul
   shade.addColorStop(1, 'rgba(18, 12, 6, 0.35)');
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, width, height);
+
+  // the coffee table on the left goes over the shaded wall, so the shade never swallows it
+  if (pictures.table) {
+    paintTable(ctx, pictures.table, scene);
+  }
 
   const vignette = ctx.createLinearGradient(0, 0, 0, height);
   vignette.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
@@ -178,8 +268,9 @@ const pickFlyTarget = (fly: Fly, scene: Scene): void => {
 
 /**
  * The living room after the party. The picture is painted onto a static canvas
- * positioned around the man in the recliner; smoke from the balcony barbecue and
- * a couple of flies animate on a second canvas above it.
+ * positioned around the man in the recliner, the coffee table fills the strip left of
+ * the wheel; smoke from the balcony barbecue and a couple of flies animate on a second
+ * canvas above it.
  */
 const BeerPartyBackground = () => {
   const sceneCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -194,7 +285,7 @@ const BeerPartyBackground = () => {
       return;
     }
 
-    let image: HTMLImageElement | null = null;
+    const pictures: Pictures = { room: null, table: null };
     let scene = measureScene(window.innerWidth, window.innerHeight);
     let puffs: Puff[] = [];
     let flies: Fly[] = [];
@@ -206,7 +297,7 @@ const BeerPartyBackground = () => {
     const repaint = () => {
       sceneCanvas.width = scene.width;
       sceneCanvas.height = scene.height;
-      paintScene(sceneCtx, image, scene);
+      paintScene(sceneCtx, pictures, scene);
     };
 
     const resize = () => {
@@ -219,25 +310,40 @@ const BeerPartyBackground = () => {
       flies = Array.from({ length: FLY_COUNT }, () => createFly(scene));
     };
 
-    // the sidebar can be hidden in presentation mode: slide the man accordingly
+    // the sidebar can be hidden in presentation mode: slide the man accordingly;
+    // the wheel moves and resizes with it, so the table strip is re-measured too
     const measure = () => {
-      const next = checkHasSidebar();
-      if (next !== hasSidebar) {
-        hasSidebar = next;
+      const nextHasSidebar = checkHasSidebar();
+      if (nextHasSidebar !== hasSidebar) {
+        hasSidebar = nextHasSidebar;
         resize();
+        return;
+      }
+
+      const nextTableWidth = measureTableWidth(scene.width);
+      if (Math.abs(nextTableWidth - scene.tableWidth) > 2) {
+        scene = { ...scene, tableWidth: nextTableWidth };
+        repaint();
       }
     };
 
-    const picture = new Image();
-    picture.onload = () => {
-      image = picture;
+    const room = new Image();
+    room.onload = () => {
+      pictures.room = room;
       repaint();
     };
-    picture.src = BACKGROUND_IMAGE;
+    room.src = BACKGROUND_IMAGE;
+
+    const table = new Image();
+    table.onload = () => {
+      pictures.table = table;
+      repaint();
+    };
+    table.src = TABLE_IMAGE;
 
     const draw = (timestamp: number) => {
       frameId = requestAnimationFrame(draw);
-      if (timestamp - lastFrame < FRAME_INTERVAL) {
+      if (document.hidden || timestamp - lastFrame < FRAME_INTERVAL) {
         return;
       }
       const delta = lastFrame ? Math.min(timestamp - lastFrame, 250) : FRAME_INTERVAL;
@@ -310,13 +416,16 @@ const BeerPartyBackground = () => {
 
     resize();
     window.addEventListener('resize', resize);
+    const firstMeasureTimer = window.setTimeout(measure, FIRST_MEASURE_DELAY);
     const measureTimer = window.setInterval(measure, MEASURE_INTERVAL);
     frameId = requestAnimationFrame(draw);
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.clearTimeout(firstMeasureTimer);
       window.clearInterval(measureTimer);
-      picture.onload = null;
+      room.onload = null;
+      table.onload = null;
       if (frameId != null) {
         cancelAnimationFrame(frameId);
       }

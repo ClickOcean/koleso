@@ -23,6 +23,7 @@ import {
   WOOD_INNER,
   WOOD_OUTER,
 } from './beerPartyTokens';
+import { useFoamTexture } from './foamImage';
 import { createSeededRandom, hashString } from './seededRandom';
 
 import type { FC } from 'react';
@@ -38,6 +39,9 @@ type Scale = (value: number) => number;
 const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
   // lightness variants follow sector order, so they are fixed per draw pass in beforeDraw
   const palette = useMemo(() => createSectorPalette(), []);
+  // once the photo foam head is drawn by the effects layer, the drawn foam below it is skipped
+  // (its biggest bubbles would poke out past the photo ring); the re-render rebuilds the cache
+  const hasPhotoFoam = useFoamTexture() != null;
 
   return (
     <CanvasSpinningWheel
@@ -290,74 +294,77 @@ const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
           ring(beerRadius + scale(0.4), scale(1.2), 'rgba(255, 244, 210, 0.5)');
           ctx.restore();
 
-          // foam ring: soft translucent bubbles of many sizes over a cream base, shaded like real head
-          ctx.save();
-          ring((foamInner + foamOuter) / 2 + scale(2), foamOuter - foamInner + scale(4), 'rgba(60, 35, 10, 0.4)');
+          // drawn foam ring (fallback until the photo head is available): soft translucent bubbles
+          // of many sizes over a cream base, shaded like real head
+          if (!hasPhotoFoam) {
+            ctx.save();
+            ring((foamInner + foamOuter) / 2 + scale(2), foamOuter - foamInner + scale(4), 'rgba(60, 35, 10, 0.4)');
 
-          const foamBase = ctx.createRadialGradient(center, center, foamInner, center, center, foamOuter);
-          foamBase.addColorStop(0, '#e6d3a6');
-          foamBase.addColorStop(0.35, '#f7ecd2');
-          foamBase.addColorStop(0.7, '#fbf3df');
-          foamBase.addColorStop(1, '#e9d8b0');
-          ring((foamInner + foamOuter) / 2, foamOuter - foamInner, foamBase);
+            const foamBase = ctx.createRadialGradient(center, center, foamInner, center, center, foamOuter);
+            foamBase.addColorStop(0, '#e6d3a6');
+            foamBase.addColorStop(0.35, '#f7ecd2');
+            foamBase.addColorStop(0.7, '#fbf3df');
+            foamBase.addColorStop(1, '#e9d8b0');
+            ring((foamInner + foamOuter) / 2, foamOuter - foamInner, foamBase);
 
-          // big lazy bubbles first, small ones on top; no hard outlines, just a faint shadow on the far side
-          const foamLayers: [number, number, number, number][] = [
-            // count, min size, max size, alpha
-            [90, 9, 15, 0.78],
-            [170, 5, 9, 0.85],
-            [260, 2.2, 5, 0.9],
-          ];
-          foamLayers.forEach(([count, minSize, maxSize, alpha]) => {
-            for (let index = 0; index < count; index++) {
-              const angle = random() * TWO_PI;
-              const spread = (random() + random() - 1) * scale(12);
-              const distance = foamRadius + spread;
-              const size = scale(minSize + random() * (maxSize - minSize));
-              const x = center + Math.cos(angle) * distance;
-              const y = center + Math.sin(angle) * distance;
-              // light comes from the top-left of the screen
-              const lx = x - size * 0.35;
-              const ly = y - size * 0.35;
+            // big lazy bubbles first, small ones on top; no hard outlines, just a faint shadow on the far side
+            const foamLayers: [number, number, number, number][] = [
+              // count, min size, max size, alpha
+              [90, 9, 15, 0.78],
+              [170, 5, 9, 0.85],
+              [260, 2.2, 5, 0.9],
+            ];
+            foamLayers.forEach(([count, minSize, maxSize, alpha]) => {
+              for (let index = 0; index < count; index++) {
+                const angle = random() * TWO_PI;
+                const spread = (random() + random() - 1) * scale(12);
+                const distance = foamRadius + spread;
+                const size = scale(minSize + random() * (maxSize - minSize));
+                const x = center + Math.cos(angle) * distance;
+                const y = center + Math.sin(angle) * distance;
+                // light comes from the top-left of the screen
+                const lx = x - size * 0.35;
+                const ly = y - size * 0.35;
 
-              ctx.globalAlpha = alpha;
-              const body = ctx.createRadialGradient(lx, ly, size * 0.1, x, y, size);
-              body.addColorStop(0, '#fffdf7');
-              body.addColorStop(0.55, '#f9efd8');
-              body.addColorStop(0.92, '#eadcb6');
-              body.addColorStop(1, 'rgba(200, 175, 125, 0.55)');
-              ctx.fillStyle = body;
-              ctx.beginPath();
-              ctx.arc(x, y, size, 0, TWO_PI);
-              ctx.fill();
+                ctx.globalAlpha = alpha;
+                const body = ctx.createRadialGradient(lx, ly, size * 0.1, x, y, size);
+                body.addColorStop(0, '#fffdf7');
+                body.addColorStop(0.55, '#f9efd8');
+                body.addColorStop(0.92, '#eadcb6');
+                body.addColorStop(1, 'rgba(200, 175, 125, 0.55)');
+                ctx.fillStyle = body;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, TWO_PI);
+                ctx.fill();
 
-              // glossy highlight
-              ctx.globalAlpha = alpha * 0.9;
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-              ctx.beginPath();
-              ctx.arc(lx, ly, size * 0.22, 0, TWO_PI);
-              ctx.fill();
-            }
-          });
-          ctx.globalAlpha = 1;
+                // glossy highlight
+                ctx.globalAlpha = alpha * 0.9;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.beginPath();
+                ctx.arc(lx, ly, size * 0.22, 0, TWO_PI);
+                ctx.fill();
+              }
+            });
+            ctx.globalAlpha = 1;
 
-          // shadow where the head meets the beer, and a warm tint towards the counter
-          const foamShade = ctx.createRadialGradient(
-            center,
-            center,
-            foamInner - scale(2),
-            center,
-            center,
-            foamOuter + scale(2),
-          );
-          foamShade.addColorStop(0, 'rgba(120, 80, 30, 0.35)');
-          foamShade.addColorStop(0.18, 'rgba(120, 80, 30, 0)');
-          foamShade.addColorStop(0.85, 'rgba(160, 120, 60, 0)');
-          foamShade.addColorStop(1, 'rgba(120, 80, 30, 0.28)');
-          ring((foamInner + foamOuter) / 2, foamOuter - foamInner + scale(4), foamShade);
-          ctx.restore();
+            // shadow where the head meets the beer, and a warm tint towards the counter
+            const foamShade = ctx.createRadialGradient(
+              center,
+              center,
+              foamInner - scale(2),
+              center,
+              center,
+              foamOuter + scale(2),
+            );
+            foamShade.addColorStop(0, 'rgba(120, 80, 30, 0.35)');
+            foamShade.addColorStop(0.18, 'rgba(120, 80, 30, 0)');
+            foamShade.addColorStop(0.85, 'rgba(160, 120, 60, 0)');
+            foamShade.addColorStop(1, 'rgba(120, 80, 30, 0.28)');
+            ring((foamInner + foamOuter) / 2, foamOuter - foamInner + scale(4), foamShade);
+            ctx.restore();
+          }
 
-          // foam running over the counter onto the beer
+          // foam running over the counter onto the beer (kept under the photo head: the drips emerge from beneath it)
           ctx.save();
           ctx.lineCap = 'round';
           for (let index = 0; index < 5; index++) {

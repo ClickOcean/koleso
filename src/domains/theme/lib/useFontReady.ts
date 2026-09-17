@@ -56,9 +56,16 @@ export function useFontReady(fontSpec: string): boolean {
       }
     };
 
+    // Пустой список означает, что семейство ещё не объявлено (@font-face подключится позже):
+
+    // такой ответ в кеш не пишем, иначе шрифт, зарегистрированный потом, никогда не перерисует холст.
+
     document.fonts.load(fontSpec).then(
-      () => markReady(true),
+
+      (faces) => markReady(faces.length > 0),
+
       () => markReady(false),
+
     );
 
     return () => {

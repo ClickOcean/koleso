@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 
 import { BUBBLE_BAND_INNER, BUBBLE_BAND_OUTER, FOAM_RING_OFFSET } from './beerPartyTokens';
-import { foamImage } from './foamImage';
+import { foamTexture } from './foamImage';
+import { buildFoamRing } from './foamRing';
 
 import type { EffectsProps } from '@domains/wheel/BaseWheel/parts/types';
 
@@ -134,6 +135,8 @@ const BeerPartyEffects = ({ layout, isSpinning }: EffectsProps) => {
   useEffect(() => {
     let frameId: number | null = null;
     let lastFrame = 0;
+    // the photo foam head, pre-rendered once per layout as soon as the texture is available
+    let foamRing: HTMLCanvasElement | null = null;
 
     const { canvasSize, center, wheelRadius, scale } = layout;
     const state = stateRef.current;
@@ -161,7 +164,7 @@ const BeerPartyEffects = ({ layout, isSpinning }: EffectsProps) => {
     const draw = (timestamp: number) => {
       frameId = requestAnimationFrame(draw);
 
-      if (timestamp - lastFrame < FRAME_INTERVAL) {
+      if (document.hidden || timestamp - lastFrame < FRAME_INTERVAL) {
         return;
       }
       const delta = lastFrame ? Math.min(timestamp - lastFrame, 250) : FRAME_INTERVAL;
@@ -186,19 +189,15 @@ const BeerPartyEffects = ({ layout, isSpinning }: EffectsProps) => {
 
       ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-      // generated foam photo over the rim, clipped to the foam band; the drawn foam underneath is the fallback
-      const foam = foamImage.get();
-      if (foam) {
-        const outer = wheelRadius + scale * 30;
-        const inner = wheelRadius - scale * 6;
-        const drawSize = (outer * 2) / 0.95;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(center, center, outer, 0, TWO_PI);
-        ctx.arc(center, center, inner, 0, TWO_PI, true);
-        ctx.clip();
-        ctx.drawImage(foam, center - drawSize / 2, center - drawSize / 2, drawSize, drawSize);
-        ctx.restore();
+      // photo foam head over the rim (see foamRing.ts); until the texture loads the drawn foam on the wheel is shown
+      if (!foamRing) {
+        const texture = foamTexture.get();
+        if (texture) {
+          foamRing = buildFoamRing(layout, texture);
+        }
+      }
+      if (foamRing) {
+        ctx.drawImage(foamRing, 0, 0);
       }
 
       // bubbles rising along the glass wall towards the pointer, popping when they get there

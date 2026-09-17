@@ -7,9 +7,16 @@ import SolarSystemPointer from './SolarSystemPointer';
 import SolarSystemWheel from './SolarSystemWheel';
 import { SOLAR_ACCENT, SOLAR_HEADING_FONT } from './solarTokens';
 
-/** The wheel is the Sun: blazing plasma sectors under a corona, with the planets orbiting it in deep space. */
-const HUB_PLASMA =
-  'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22g%22%20cx%3D%2245%25%22%20cy%3D%2242%25%22%20r%3D%2260%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff7d6%22%2F%3E%3Cstop%20offset%3D%220.45%22%20stop-color%3D%22%23ffd45c%22%2F%3E%3Cstop%20offset%3D%220.8%22%20stop-color%3D%22%23ff9a1f%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e8600a%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url%28%23g%29%22%2F%3E%3C%2Fsvg%3E';
+import './solarSystem.css';
+
+/**
+ * The wheel is the Sun: a photo of the photosphere (sun.jpg) tinted per sector under a living
+ * corona, with the planets orbiting it in deep space. Until the photo loads the wheel paints its
+ * procedural plasma. `solarSystem.css` tones down the white hub ring for this theme only.
+ */
+/** Тёмный диск для ступицы под затмением */
+const HUB_ECLIPSE =
+  'data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22g%22%20cx%3D%2250%25%22%20cy%3D%2250%25%22%20r%3D%2250%25%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%2318181f%22%2F%3E%3Cstop%20offset%3D%220.85%22%20stop-color%3D%22%230a0a10%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23050508%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%22100%22%20fill%3D%22url%28%23g%29%22%2F%3E%3C%2Fsvg%3E';
 
 const theme: ThemeDefinition = {
   id: 'solarSystem',
@@ -17,8 +24,8 @@ const theme: ThemeDefinition = {
     spinningWheel: SolarSystemWheel,
     pointer: SolarSystemPointer,
     effects: SolarSystemEffects,
-    // the hottest spot of the photosphere: a plain plasma disc, deliberately not a second Sun
-    coreImage: HUB_PLASMA,
+    // затмение: ступица — та же тьма лунного диска (SVG data URL, скобки закодированы для css url())
+    coreImage: HUB_ECLIPSE,
   },
   background: SolarSystemBackground,
   ui: {

@@ -2,6 +2,8 @@ import { useId } from 'react';
 
 import classes from '@domains/wheel/BaseWheel/BaseWheel.module.css';
 
+import { bottleGeometry } from './bottleGeometry';
+
 import type { PointerProps } from '@domains/wheel/BaseWheel/parts/types';
 
 /**
@@ -15,13 +17,19 @@ const GLASS_SHINE = 'M32 14C32 10 35 8 38 9L38 112C37 116 34 118 32 116Z';
 const NECK_SHINE = 'M42 158L45 158L45 194L42 194Z';
 const CAP = 'M36 196L64 196L64 210L36 210Z';
 
+/** The bottle occupies viewBox rows 6..214 of 220: base at the top, cap tip at the bottom */
+const BOTTLE_TOP = 6 / 220;
+const BOTTLE_SPAN = 208 / 220;
+
 /**
  * Hand-drawn classic brown long-neck beer bottle hanging neck-down, the crown cap
- * marking the winner. Stands in until the generated bottle photo is available.
+ * marking the winner. Stands in until the generated bottle photo is available and
+ * follows the same geometry (`bottleGeometry`), so the swap does not move the bottle.
  */
 const BeerPartyPointerDrawn = ({ layout }: PointerProps) => {
   const idPrefix = useId().replace(/[^a-zA-Z0-9_-]/g, '');
-  const size = Math.max(80, Math.round(layout.targetWheelSize * 0.21));
+  const { protrusion, height } = bottleGeometry(layout);
+  const size = Math.round(height / BOTTLE_SPAN);
   const glassId = `${idPrefix}-glass`;
   const capId = `${idPrefix}-cap`;
   const labelId = `${idPrefix}-label`;
@@ -30,7 +38,7 @@ const BeerPartyPointerDrawn = ({ layout }: PointerProps) => {
   return (
     <svg
       className={classes.wheelPointer}
-      style={{ transform: 'translate(-50%, -34%)' }}
+      style={{ transform: `translate(-50%, ${-Math.round(protrusion + size * BOTTLE_TOP)}px)` }}
       width={Math.round((size * 100) / 220)}
       height={size}
       viewBox='0 0 100 220'
@@ -77,7 +85,16 @@ const BeerPartyPointerDrawn = ({ layout }: PointerProps) => {
         {/* gold foil around the neck */}
         <rect x='40' y='150' width='20' height='10' fill={`url(#${foilId})`} stroke='#5a4210' strokeWidth='0.6' />
         {/* main label: cream with a red band and gold rules, no text */}
-        <rect x='29' y='40' width='42' height='60' rx='3' fill={`url(#${labelId})`} stroke='#8a6a3a' strokeWidth='0.8' />
+        <rect
+          x='29'
+          y='40'
+          width='42'
+          height='60'
+          rx='3'
+          fill={`url(#${labelId})`}
+          stroke='#8a6a3a'
+          strokeWidth='0.8'
+        />
         <rect x='29' y='60' width='42' height='18' fill='#b3261e' />
         <rect x='29' y='60' width='42' height='1.6' fill='#e0a526' />
         <rect x='29' y='76.4' width='42' height='1.6' fill='#e0a526' />
@@ -99,7 +116,11 @@ const BeerPartyPointerDrawn = ({ layout }: PointerProps) => {
         />
         <rect x='38' y='198' width='24' height='3' fill='rgba(255, 255, 255, 0.5)' />
         {/* a drop of foam escaping past the cap */}
-        <path d='M47 214C47 218 45 220 45 223C45 225.5 49 225.5 49 223C49 220 51 218 51 214Z' fill='#fbf2dc' opacity='0.9' />
+        <path
+          d='M47 214C47 218 45 220 45 223C45 225.5 49 225.5 49 223C49 220 51 218 51 214Z'
+          fill='#fbf2dc'
+          opacity='0.9'
+        />
       </g>
     </svg>
   );

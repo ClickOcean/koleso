@@ -41,13 +41,73 @@
   opacity: 1;
 }
 
-/* Beer party: the photo bottle sways a little around its neck */
-@keyframes beer-bottle-wobble {
-  0%,
-  100% {
-    transform: translate(-50%, -34%) rotate(180deg);
+
+/*
+ * Deep space: slow Ken Burns drift of the photo backdrop, compositor only.
+ * The scale is never below 1.06 and the translate never exceeds 2.2 %, so the
+ * edges of the photo never come into view.
+ */
+@keyframes deep-space-drift {
+  from {
+    transform: scale(1.06) translate(0%, 0%);
   }
-  50% {
-    transform: translate(-50%, -34%) rotate(176deg);
+  to {
+    transform: scale(1.12) translate(-2.2%, 1.4%);
+  }
+}
+
+/* Deep space: the warm glow over the nebula breathes very faintly */
+@keyframes deep-space-breathe {
+  from {
+    opacity: 0.05;
+  }
+  to {
+    opacity: 0.12;
+  }
+}
+
+.deep-space-photo {
+  will-change: transform;
+  animation: deep-space-drift 140s ease-in-out infinite alternate;
+}
+
+.deep-space-glow {
+  opacity: 0.08;
+  animation: deep-space-breathe 14s ease-in-out infinite alternate;
+}
+
+/*
+ * Deep space: the team's astrophoto strip to the left of the wheel drifts up by
+ * 14 px and back over two minutes, compositor only. The picture is 14 px taller
+ * than its box (see `TeamAstrophotoStrip`), so its bottom edge never comes into view.
+ */
+@keyframes deep-space-strip-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-14px);
+  }
+}
+
+.deep-space-strip {
+  will-change: transform;
+  animation: deep-space-strip-drift 120s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deep-space-photo {
+    will-change: auto;
+    animation: none;
+    transform: scale(1.06);
+  }
+
+  .deep-space-glow {
+    animation: none;
+  }
+
+  .deep-space-strip {
+    will-change: auto;
+    animation: none;
   }
 }

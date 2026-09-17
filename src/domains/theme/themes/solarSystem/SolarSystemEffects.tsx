@@ -18,6 +18,13 @@ const MAX_SPARKS = 60;
 const FLARE_CHECK_MS = 600;
 const FLARE_CHANCE = 0.4;
 const FLARE_SPARKS = 14;
+/**
+ * The brightness sweep over the disc is barely there: the wheel is a photo of the photosphere
+ * and its granulation must not be washed out. Alpha at the rim, idle and spinning.
+ */
+const SWEEP_ALPHA_IDLE = 0.02;
+const SWEEP_ALPHA_SPIN = 0.03;
+const SWEEP_HALF_SPAN = 0.7;
 const TAU = 2 * Math.PI;
 
 interface Tongue {
@@ -79,7 +86,8 @@ const createSpark = (spinning: boolean, angle = Math.random() * TAU, boost = 1):
   size: 1.1 + Math.random() * 1.6,
   age: 0,
   duration: 1200 + Math.random() * 1400,
-  hot: Math.random() < 0.4,
+  // more white-hot than orange sparks: the corona around the photo reads whiter
+  hot: Math.random() < 0.55,
 });
 
 const createFlare = (): Flare => ({
@@ -102,7 +110,8 @@ const resizeCanvas = (canvas: HTMLCanvasElement | null, size: number): void => {
 
 /**
  * Living corona over the wheel: prominences arching out of the rim, plasma sparks
- * drifting outward and a breathing halo. While spinning everything is denser and
+ * drifting outward and a breathing halo, all kept warm-white and restrained so the
+ * photo's own limb stays visible under them. While spinning everything is denser and
  * faster, and bright flares burst on the rim now and then.
  */
 const SolarSystemEffects = ({ layout, isSpinning }: EffectsProps) => {
@@ -206,44 +215,38 @@ const SolarSystemEffects = ({ layout, isSpinning }: EffectsProps) => {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
 
-      // breathing halo just outside the rim
+      // breathing halo just outside the rim: warm white at the limb, orange further out
       const wave = (Math.sin(state.shimmer) + 1) / 2;
-      const haloAlpha = (spinning ? 0.14 : 0.05) + wave * (spinning ? 0.08 : 0.04);
+      const haloAlpha = (spinning ? 0.11 : 0.04) + wave * (spinning ? 0.06 : 0.03);
       const haloReach = wheelRadius + scale * 44;
-      const halo = ctx.createRadialGradient(center, center, wheelRadius - scale * 2, center, center, haloReach);
-      halo.addColorStop(0, `rgba(255, 210, 110, ${haloAlpha})`);
-      halo.addColorStop(0.5, `rgba(255, 150, 50, ${haloAlpha * 0.4})`);
-      halo.addColorStop(1, 'rgba(255, 120, 30, 0)');
+      const halo = ctx.createRadialGradient(center, center, wheelRadius, center, center, haloReach);
+      halo.addColorStop(0, `rgba(255, 228, 170, ${haloAlpha})`);
+      halo.addColorStop(0.5, `rgba(255, 175, 75, ${haloAlpha * 0.35})`);
+      halo.addColorStop(1, 'rgba(255, 130, 40, 0)');
       ctx.fillStyle = halo;
       ctx.beginPath();
       ctx.arc(center, center, haloReach, 0, TAU);
-      ctx.arc(center, center, wheelRadius - scale * 2, 0, TAU, true);
+      ctx.arc(center, center, wheelRadius, 0, TAU, true);
       ctx.fill();
 
-      // shimmer: three soft bright bands sweeping around the disc, brighter towards the rim
+      // one slow, barely visible brightness sweep over the disc, brighter towards the rim
       ctx.save();
       ctx.beginPath();
       ctx.arc(center, center, wheelRadius - scale * 5, 0, TAU);
       ctx.clip();
-      const sweep = state.shimmer * (spinning ? 1.6 : 0.55);
-      for (let band = 0; band < 3; band++) {
-        const angle = sweep + (band * TAU) / 3;
-        for (let layer = 0; layer < 4; layer++) {
-          const halfSpan = 0.55 - layer * 0.12;
-          const glow = ctx.createRadialGradient(center, center, wheelRadius * 0.25, center, center, wheelRadius);
-          glow.addColorStop(0, 'rgba(255, 245, 200, 0)');
-          glow.addColorStop(1, `rgba(255, 245, 200, ${spinning ? 0.05 : 0.035})`);
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.moveTo(center, center);
-          ctx.arc(center, center, wheelRadius, angle - halfSpan, angle + halfSpan);
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
+      const sweep = state.shimmer * (spinning ? 1.2 : 0.4);
+      const sweepGlow = ctx.createRadialGradient(center, center, wheelRadius * 0.3, center, center, wheelRadius);
+      sweepGlow.addColorStop(0, 'rgba(255, 245, 210, 0)');
+      sweepGlow.addColorStop(1, `rgba(255, 245, 210, ${spinning ? SWEEP_ALPHA_SPIN : SWEEP_ALPHA_IDLE})`);
+      ctx.fillStyle = sweepGlow;
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.arc(center, center, wheelRadius, sweep - SWEEP_HALF_SPAN, sweep + SWEEP_HALF_SPAN);
+      ctx.closePath();
+      ctx.fill();
       ctx.restore();
 
-      // prominences grow quickly, then fade
+      // prominences grow quickly, then fade; they root at the rim, not over the photo's limb
       state.tongues.forEach((tongue) => {
         const t = tongue.age / tongue.duration;
         const grow = 1 - Math.pow(1 - Math.min(1, t / 0.55), 2);
@@ -255,12 +258,12 @@ const SolarSystemEffects = ({ layout, isSpinning }: EffectsProps) => {
           center,
           {
             angle: tongue.angle,
-            base: wheelRadius - scale * 6,
+            base: wheelRadius - scale * 3,
             height: tongue.height * scale * grow,
             halfWidth: tongue.halfWidth * scale,
             lean: tongue.lean * scale * grow,
           },
-          { alpha: fade * (spinning ? 0.7 : 0.5), hot: fade * 0.45 },
+          { alpha: fade * (spinning ? 0.5 : 0.36), hot: fade * 0.55 },
         );
       });
 
@@ -275,14 +278,14 @@ const SolarSystemEffects = ({ layout, isSpinning }: EffectsProps) => {
         const y = center + Math.sin(spark.angle) * r;
         const size = spark.size * scale;
 
-        ctx.strokeStyle = spark.hot ? `rgba(255, 230, 170, ${alpha * 0.45})` : `rgba(255, 150, 50, ${alpha * 0.45})`;
+        ctx.strokeStyle = spark.hot ? `rgba(255, 240, 200, ${alpha * 0.45})` : `rgba(255, 170, 70, ${alpha * 0.45})`;
         ctx.lineWidth = size * 0.9;
         ctx.beginPath();
         ctx.moveTo(center + Math.cos(spark.angle) * tail, center + Math.sin(spark.angle) * tail);
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        ctx.fillStyle = spark.hot ? `rgba(255, 244, 210, ${alpha})` : `rgba(255, 176, 70, ${alpha})`;
+        ctx.fillStyle = spark.hot ? `rgba(255, 248, 225, ${alpha})` : `rgba(255, 190, 90, ${alpha})`;
         ctx.beginPath();
         ctx.arc(x, y, size, 0, TAU);
         ctx.fill();
@@ -298,20 +301,20 @@ const SolarSystemEffects = ({ layout, isSpinning }: EffectsProps) => {
         const blobRadius = scale * 70 * (0.5 + 0.7 * t);
 
         const blob = ctx.createRadialGradient(x, y, 0, x, y, blobRadius);
-        blob.addColorStop(0, `rgba(255, 250, 225, ${0.9 * env})`);
-        blob.addColorStop(0.3, `rgba(255, 210, 110, ${0.5 * env})`);
+        blob.addColorStop(0, `rgba(255, 252, 235, ${0.8 * env})`);
+        blob.addColorStop(0.3, `rgba(255, 220, 140, ${0.42 * env})`);
         blob.addColorStop(1, 'rgba(255, 150, 40, 0)');
         ctx.fillStyle = blob;
         ctx.beginPath();
         ctx.arc(x, y, blobRadius, 0, TAU);
         ctx.fill();
 
-        ctx.strokeStyle = `rgba(255, 240, 190, ${0.85 * env})`;
+        ctx.strokeStyle = `rgba(255, 244, 205, ${0.75 * env})`;
         ctx.lineWidth = scale * 5;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = scale * 18;
-        ctx.shadowColor = 'rgba(255, 200, 90, 0.9)';
+        ctx.shadowColor = 'rgba(255, 210, 120, 0.85)';
         ctx.beginPath();
         ctx.arc(center, center, r, flare.angle - flare.span * (0.4 + t), flare.angle + flare.span * (0.4 + t));
         ctx.stroke();

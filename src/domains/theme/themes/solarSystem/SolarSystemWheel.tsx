@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import tinycolor from 'tinycolor2';
 
 import { fitText } from '@utils/common.utils';
 import { WheelItem, WheelItemWithAngle } from '@models/wheel.model';
@@ -7,8 +8,9 @@ import { fitSectorText } from '@domains/wheel/BaseWheel/parts/sectorText';
 
 import { drawProminence } from './prominence';
 import { createSeededRandom } from './seededRandom';
-import { createSectorPalette } from './solarPalette';
+import { createSectorPalette, sectorVariant } from './solarPalette';
 import { CORONA_REACH, RIM_WIDTH, SOLAR_FONT, SOLAR_RIM, SOLAR_TEXT, SOLAR_TEXT_OUTLINE } from './solarTokens';
+import { SUN_DISC, useSunTexture } from './sunImage';
 
 import type { FC } from 'react';
 import type { SpinningWheelProps, WheelPartLayout } from '@domains/wheel/BaseWheel/parts/types';
@@ -27,8 +29,22 @@ const GRAIN_MIN = 30;
 const GRAIN_MAX = 420;
 /** The hub image covers the centre; texture and dividers start outside it */
 const HUB_RATIO = 0.16;
-const RAY_COUNT = 96;
-const TONGUE_COUNT = 8;
+
+/**
+ * Затмение: колесо — диск Луны, закрывший Солнце. Фото Солнца остаётся под ним едва заметной
+ * фактурой (гранулы и пятна проступают сквозь тёмный диск), корона живёт на фоне и в слое эффектов.
+ * Секторы — очень слабые тёплые подсветки поверх тьмы, чтобы соседей можно было различить.
+ */
+const ECLIPSE_DISC_CENTER = 'rgba(12, 12, 18, 0.86)';
+const ECLIPSE_DISC_EDGE = 'rgba(4, 4, 8, 0.94)';
+/** Свет короны, затекающий на край лунного диска */
+const ECLIPSE_EDGE_GLOW = 'rgba(255, 205, 150, 0.22)';
+const TINT_BLEND: GlobalCompositeOperation = 'source-over';
+const TINT_ALPHA = 0.09;
+/** Highlight mode: the losing sectors sink deeper into the dark */
+const DIM_SHADE = 'rgba(0, 0, 0, 0.55)';
+const PHOTO_TEXT = '#fff3d6';
+const PHOTO_TEXT_OUTLINE = 'rgba(0, 0, 0, 0.85)';
 
 interface SectorGeometry {
   center: number;
@@ -49,6 +65,48 @@ interface Filament {
   angle: number;
   halfSpan: number;
 }
+
+/** How strong the static corona on the wheel canvas is: painted plasma needs more of it than the photo */
+interface CoronaStyle {
+  /** Radial gradient stops from the rim (0) to CORONA_REACH (1) */
+  glow: [offset: number, color: string][];
+  rayCount: number;
+  rayAlpha: number;
+  tongueCount: number;
+  tongueAlpha: number;
+  tongueHot: number;
+}
+
+const PLASMA_CORONA: CoronaStyle = {
+  glow: [
+    [0, 'rgba(255, 232, 160, 0.92)'],
+    [0.1, 'rgba(255, 185, 70, 0.6)'],
+    [0.35, 'rgba(255, 135, 35, 0.26)'],
+    [0.7, 'rgba(255, 100, 20, 0.08)'],
+    [1, 'rgba(255, 90, 10, 0)'],
+  ],
+  rayCount: 96,
+  rayAlpha: 0.07,
+  tongueCount: 8,
+  tongueAlpha: 0.5,
+  tongueHot: 0.3,
+};
+
+/** Whiter and more restrained: the photo's own limb darkening has to stay visible next to it */
+const PHOTO_CORONA: CoronaStyle = {
+  glow: [
+    [0, 'rgba(255, 242, 205, 0.7)'],
+    [0.1, 'rgba(255, 205, 120, 0.42)'],
+    [0.35, 'rgba(255, 150, 50, 0.18)'],
+    [0.7, 'rgba(255, 110, 25, 0.05)'],
+    [1, 'rgba(255, 90, 10, 0)'],
+  ],
+  rayCount: 72,
+  rayAlpha: 0.05,
+  tongueCount: 6,
+  tongueAlpha: 0.34,
+  tongueHot: 0.34,
+};
 
 /** Static plasma grain: a few hundred dots and short arcs in lighter and darker tones */
 const drawGranules = (
@@ -208,7 +266,7 @@ const drawLimb = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, discRa
 };
 
 /** Corona: glow spilling into the overscan, faint rays and a few static prominence arches */
-const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scale: Scale): void => {
+const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scale: Scale, style: CoronaStyle): void => {
   const { center, wheelRadius, overflowPadding } = layout;
   const random = createSeededRandom('solar-corona');
   const reach = wheelRadius + overflowPadding * CORONA_REACH;
@@ -216,11 +274,7 @@ const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scal
   ctx.save();
 
   const glow = ctx.createRadialGradient(center, center, wheelRadius - scale(2), center, center, reach);
-  glow.addColorStop(0, 'rgba(255, 232, 160, 0.92)');
-  glow.addColorStop(0.1, 'rgba(255, 185, 70, 0.6)');
-  glow.addColorStop(0.35, 'rgba(255, 135, 35, 0.26)');
-  glow.addColorStop(0.7, 'rgba(255, 100, 20, 0.08)');
-  glow.addColorStop(1, 'rgba(255, 90, 10, 0)');
+  style.glow.forEach(([offset, color]) => glow.addColorStop(offset, color));
   ctx.fillStyle = glow;
   ctx.beginPath();
   ctx.arc(center, center, reach, 0, TAU);
@@ -230,12 +284,12 @@ const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scal
   ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
 
-  for (let index = 0; index < RAY_COUNT; index++) {
+  for (let index = 0; index < style.rayCount; index++) {
     const angle = random() * TAU;
     const from = wheelRadius + scale(1 + random() * 6);
     const to = from + scale(12 + random() * 48);
 
-    ctx.strokeStyle = `rgba(255, ${185 + Math.round(random() * 60)}, 120, ${0.07 + random() * 0.13})`;
+    ctx.strokeStyle = `rgba(255, ${185 + Math.round(random() * 60)}, 120, ${style.rayAlpha + random() * 0.13})`;
     ctx.lineWidth = scale(0.8 + random() * 2.2);
     ctx.beginPath();
     ctx.moveTo(center + Math.cos(angle) * from, center + Math.sin(angle) * from);
@@ -243,8 +297,8 @@ const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scal
     ctx.stroke();
   }
 
-  for (let index = 0; index < TONGUE_COUNT; index++) {
-    const angle = (index / TONGUE_COUNT) * TAU + (random() - 0.5) * 0.6;
+  for (let index = 0; index < style.tongueCount; index++) {
+    const angle = (index / style.tongueCount) * TAU + (random() - 0.5) * 0.6;
 
     drawProminence(
       ctx,
@@ -257,7 +311,7 @@ const drawCorona = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scal
         halfWidth: scale(11 + random() * 13),
         lean: scale((random() - 0.5) * 40),
       },
-      { alpha: 0.5 + random() * 0.25, hot: 0.3 + random() * 0.2 },
+      { alpha: style.tongueAlpha + random() * 0.25, hot: style.tongueHot + random() * 0.2 },
     );
   }
 
@@ -288,16 +342,159 @@ const drawRim = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout, scale: 
   ctx.restore();
 };
 
+/**
+ * The photo of the Sun under the lunar disc of the eclipse. The disc on the photo is off-centre, so the
+ * square around its measured circle (`SUN_DISC`) is mapped onto the square around the wheel disc:
+ * (SUN_DISC.x, SUN_DISC.y) lands on (center, center) and SUN_DISC.radius becomes `discRadius`,
+ * i.e. scale = discRadius / SUN_DISC.radius. Clipped to the disc, so the black margins never show.
+ */
+const drawPhotosphere = (
+  ctx: CanvasRenderingContext2D,
+  texture: HTMLImageElement,
+  layout: WheelPartLayout,
+  discRadius: number,
+): void => {
+  const { center } = layout;
+  const { x, y, radius } = SUN_DISC;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center, center, discRadius, 0, TAU);
+  ctx.clip();
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(
+    texture,
+    x - radius,
+    y - radius,
+    radius * 2,
+    radius * 2,
+    center - discRadius,
+    center - discRadius,
+    discRadius * 2,
+    discRadius * 2,
+  );
+
+  // лунный диск поверх: почти чёрный, чуть светлее к центру, фото проступает как призрак
+  const moon = ctx.createRadialGradient(center, center, 0, center, center, discRadius);
+  moon.addColorStop(0, ECLIPSE_DISC_CENTER);
+  moon.addColorStop(1, ECLIPSE_DISC_EDGE);
+  ctx.fillStyle = moon;
+  ctx.fillRect(0, 0, layout.canvasSize, layout.canvasSize);
+  ctx.restore();
+};
+
+/**
+ * Tint over the photo for one sector, derived from the palette colour of the sector: variant 0 is
+ * the palette gold as is (close to the photo itself), 1 a pale yellow that brightens under
+ * soft-light, 2 a deep orange that deepens. Warm hues only, so the disc stays one Sun.
+ */
+const photoTint = (colors: SliceColors, variant: number): string => {
+  const base = tinycolor(colors.fill);
+
+  switch (variant % 3) {
+    case 1:
+      return base.lighten(18).spin(6).toHexString();
+    case 2:
+      return base.darken(14).spin(-18).toHexString();
+    default:
+      return base.toHexString();
+  }
+};
+
+/**
+ * Variant of every sector for the photo tints, mirroring the palette's rule: cycles 0,1,2 with
+ * sector order so neighbours differ. The dropout animation redraws just the two neighbours of the
+ * removed sector; that partial pass keeps the variants they already had.
+ */
+const assignTintVariants = (variants: Map<WheelItem['id'], number>, items: WheelItem[]): void => {
+  const isPartial = items.length === 2 && variants.size > 2 && items.every((item) => variants.has(item.id));
+  if (isPartial) {
+    return;
+  }
+
+  variants.clear();
+  items.forEach((item, index) => variants.set(item.id, sectorVariant(index, items.length)));
+};
+
+/** Photo mode: thin bright dividers with a faint glow, one per boundary, from outside the hub to the rim */
+const drawPhotoDividers = (
+  ctx: CanvasRenderingContext2D,
+  items: WheelItemWithAngle[],
+  center: number,
+  radius: number,
+  scale: Scale,
+): void => {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(255, 225, 185, 0.22)';
+  ctx.lineWidth = scale(1);
+  ctx.beginPath();
+  items.forEach(({ startAngle }) => {
+    const cos = Math.cos(startAngle);
+    const sin = Math.sin(startAngle);
+    ctx.moveTo(center + cos * radius * HUB_RATIO, center + sin * radius * HUB_RATIO);
+    ctx.lineTo(center + cos * radius, center + sin * radius);
+  });
+  ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * Eclipse edge: corona light spilling onto the rim of the dark disc and the thin bright
+ * chromosphere ring right at the limb.
+ */
+const drawPhotoLimb = (
+  ctx: CanvasRenderingContext2D,
+  layout: WheelPartLayout,
+  discRadius: number,
+  scale: Scale,
+): void => {
+  const { center, canvasSize, wheelRadius } = layout;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center, center, discRadius, 0, TAU);
+  ctx.clip();
+  const spill = ctx.createRadialGradient(center, center, discRadius * 0.9, center, center, discRadius);
+  spill.addColorStop(0, 'rgba(255, 205, 150, 0)');
+  spill.addColorStop(1, ECLIPSE_EDGE_GLOW);
+  ctx.fillStyle = spill;
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+  ctx.restore();
+
+  // хромосфера: тонкое яркое кольцо на самом краю диска
+  ctx.save();
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur = scale(18);
+  ctx.shadowColor = 'rgba(255, 190, 110, 0.9)';
+  ctx.strokeStyle = 'rgba(255, 238, 205, 0.95)';
+  ctx.lineWidth = scale(2.5);
+  ctx.beginPath();
+  ctx.arc(center, center, wheelRadius - scale(1), 0, TAU);
+  ctx.stroke();
+  ctx.restore();
+};
+
 const SolarSystemSpinningWheel: FC<SpinningWheelProps> = (props) => {
   // lightness variants follow sector order, so they are fixed per draw pass in beforeDraw
   const palette = useMemo(() => createSectorPalette(), []);
+  const tintVariants = useMemo(() => new Map<WheelItem['id'], number>(), []);
+  // the photo replaces the painted plasma the moment it is loaded; a missing file keeps the plasma
+  // (the value is read inside the renderer, so its arrival rebuilds the cached wheel canvas)
+  const texture = useSunTexture();
 
   return (
     <CanvasSpinningWheel
       {...props}
       renderer={{
-        beforeDraw(_ctx, items) {
+        beforeDraw(ctx, items, { layout, scale }) {
           palette.beginPass(items);
+          if (texture) {
+            assignTintVariants(tintVariants, items);
+            drawPhotosphere(ctx, texture, layout, layout.wheelRadius - scale(innerBorderWidth));
+          }
         },
         drawText(ctx, { startAngle, endAngle, name, displayName }: WheelItemWithAngle, { layout, scale }) {
           if ((endAngle - startAngle) / Math.PI / 2 < 0.016) {
@@ -319,20 +516,32 @@ const SolarSystemSpinningWheel: FC<SpinningWheelProps> = (props) => {
             textRadius * Math.sin(centerAngle) + layout.center,
           );
           ctx.rotate(centerAngle);
-
-          // warm light outline with a faint glow keeps dark glyphs readable on every plasma tone
           ctx.lineJoin = 'round';
-          ctx.strokeStyle = SOLAR_TEXT_OUTLINE;
           ctx.lineWidth = scale(4);
           ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.shadowBlur = scale(5);
-          ctx.shadowColor = 'rgba(255, 220, 140, 0.8)';
-          ctx.strokeText(text, 0, 0);
 
-          ctx.shadowBlur = 0;
-          ctx.shadowColor = 'transparent';
-          ctx.fillStyle = SOLAR_TEXT;
+          if (texture) {
+            // светлые буквы с чёрной обводкой и тёплым свечением на тёмном лунном диске
+            ctx.strokeStyle = PHOTO_TEXT_OUTLINE;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowBlur = 0;
+            ctx.strokeText(text, 0, 0);
+
+            ctx.shadowBlur = scale(8);
+            ctx.shadowColor = 'rgba(255, 200, 120, 0.45)';
+            ctx.fillStyle = PHOTO_TEXT;
+          } else {
+            // warm light outline with a faint glow keeps dark glyphs readable on every plasma tone
+            ctx.strokeStyle = SOLAR_TEXT_OUTLINE;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowBlur = scale(5);
+            ctx.shadowColor = 'rgba(255, 220, 140, 0.8)';
+            ctx.strokeText(text, 0, 0);
+
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = SOLAR_TEXT;
+          }
           ctx.fillText(text, 0, 0);
 
           ctx.restore();
@@ -343,13 +552,30 @@ const SolarSystemSpinningWheel: FC<SpinningWheelProps> = (props) => {
           const radius = layout.wheelRadius - scale(innerBorderWidth);
           const geometry: SectorGeometry = { center, radius, startAngle, endAngle };
           const colors = palette.colorsFor(item, getColor);
-          const random = createSeededRandom(`solar-${String(item.id)}`);
 
           ctx.save();
           ctx.beginPath();
           ctx.moveTo(center, center);
           ctx.arc(center, center, radius, startAngle, endAngle);
           ctx.closePath();
+
+          if (texture) {
+            // translucent tint over the photo; a dimmed sector is desaturated and shaded instead
+            ctx.clip();
+            if (colors.dimmed) {
+              ctx.fillStyle = DIM_SHADE;
+              ctx.fillRect(0, 0, layout.canvasSize, layout.canvasSize);
+            } else {
+              ctx.globalCompositeOperation = TINT_BLEND;
+              ctx.globalAlpha = TINT_ALPHA;
+              ctx.fillStyle = photoTint(colors, tintVariants.get(item.id) ?? 0);
+              ctx.fillRect(0, 0, layout.canvasSize, layout.canvasSize);
+            }
+            ctx.restore();
+            return;
+          }
+
+          const random = createSeededRandom(`solar-${String(item.id)}`);
 
           // hottest near the hub (the core image is the Sun's centre), cooler towards the rim
           const plasma = ctx.createRadialGradient(center, center, radius * 0.08, center, center, radius);
@@ -367,9 +593,18 @@ const SolarSystemSpinningWheel: FC<SpinningWheelProps> = (props) => {
 
           drawDividers(ctx, geometry, scale);
         },
-        afterDraw(ctx, _items, { layout, scale }) {
-          drawLimb(ctx, layout, layout.wheelRadius - scale(innerBorderWidth));
-          drawCorona(ctx, layout, scale);
+        afterDraw(ctx, items, { layout, scale }) {
+          const discRadius = layout.wheelRadius - scale(innerBorderWidth);
+
+          if (texture) {
+            drawPhotoLimb(ctx, layout, discRadius, scale);
+            drawPhotoDividers(ctx, items, layout.center, discRadius, scale);
+            drawCorona(ctx, layout, scale, PHOTO_CORONA);
+            return;
+          }
+
+          drawLimb(ctx, layout, discRadius);
+          drawCorona(ctx, layout, scale, PLASMA_CORONA);
           drawRim(ctx, layout, scale);
         },
       }}

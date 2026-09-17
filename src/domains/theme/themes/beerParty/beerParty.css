@@ -1,0 +1,29 @@
+/*
+ * Beer party: the photo bottle hangs from its crown cap over the rim and sways a little.
+ * The element box is the upright bottle (cap at the top); `transform-origin` sits on the
+ * cap tip, so the 180° turn and the swing both pivot there. `--beer-bottle-dip` is set
+ * inline by BeerPartyPointer: how far the cap dips past the wheel edge.
+ */
+.beer-party-bottle {
+  transform-origin: 50% 0;
+  transform: translate(-50%, var(--beer-bottle-dip, 0px)) rotate(180deg);
+  animation: beer-party-bottle-swing 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes beer-party-bottle-swing {
+  0%,
+  100% {
+    transform: translate(-50%, var(--beer-bottle-dip, 0px)) rotate(177.5deg);
+  }
+  50% {
+    transform: translate(-50%, var(--beer-bottle-dip, 0px)) rotate(182.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beer-party-bottle {
+    animation: none;
+    will-change: auto;
+  }
+}

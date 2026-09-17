@@ -1,0 +1,32 @@
+/*
+ * Ступица «Солнечной системы». В центре колеса лежит центральный фрагмент того же фото Солнца
+ * (sun-core.jpg), и белое кольцо ступицы из BaseWheel.module.css (.wheelCore, inline borderColor
+ * '#fff', отсюда !important) выглядело бы как обруч поверх фотосферы. ThemeRoot ставит
+ * data-wheel-style на <html>, поэтому правило действует только в этой теме. Класс CSS-модуля у
+ * Vite имеет вид _wheelCore_<hash>_<строка>, а соседние классы — _wheelCoreOverlay_…,
+ * _wheelCoreText_…, _wheelCoreEmotesList_…: подстроку «wheelCore_» содержит только сама ступица.
+ */
+html[data-wheel-style='solarSystem'] [class*='wheelCore_'] {
+  border-color: rgba(255, 200, 120, 0.35) !important;
+  box-shadow: 0 0 24px rgba(255, 160, 40, 0.55) !important;
+}
+
+/* Стрелка-фотоспрайт чуть покачивается над лунным диском */
+@keyframes solar-pointer-bob {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -4px;
+  }
+}
+
+.solar-pointer {
+  animation: solar-pointer-bob 2.6s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solar-pointer {
+    animation: none;
+  }
+}

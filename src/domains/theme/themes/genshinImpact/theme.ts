@@ -5,7 +5,7 @@ import GenshinSpinningWheel from '@domains/wheel/BaseWheel/parts/spinning-wheel/
 import { ThemeDefinition } from '../../model/types';
 import { DEFAULT_UI_TOKENS } from '../default/theme';
 
-import GeometryBackground from './GeometryBackground';
+import DeepSpaceBackground from './DeepSpaceBackground';
 
 /** "Deep space": the team's everyday look. Wheel parts live in the legacy BaseWheel/parts folders. */
 const theme: ThemeDefinition = {
@@ -15,7 +15,7 @@ const theme: ThemeDefinition = {
     pointer: GenshinPointer,
     effects: GenshinEffects,
   },
-  background: GeometryBackground,
+  background: DeepSpaceBackground,
   ui: {
     ...DEFAULT_UI_TOKENS,
     accent: '#3b82f6',
