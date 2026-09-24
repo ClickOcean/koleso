@@ -89,7 +89,7 @@
 /*
  * The wheel's walk in the show (useWheelPush sets data-taiwan-wheel and --taiwan-wheel-shift on
  * <html>): it drifts to the left third, the kitten pushes it to the right third once it has landed,
- * and the tabby pushes it back to the centre once it has come out. The centre is also where the page
+ * and the tabby pushes it back to the centre as soon as its paw touches it. The centre is also where the page
  * opens, so opening it moves nothing. The CSS-module class is `_wheelArea_<hash>_<line>`.
  */
 html[data-wheel-style='taiwan'][data-taiwan-wheel='left'] [class*='wheelArea_'] {
@@ -102,7 +102,11 @@ html[data-wheel-style='taiwan'][data-taiwan-wheel='right'] [class*='wheelArea_']
   transition: transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1) 220ms;
 }
 
+/*
+ * The tabby slides in over 900ms with a strong ease-out and touches the wheel ~80ms in, so the wheel
+ * starts right then and takes the same curve: it moves as if the paw drove it.
+ */
 html[data-wheel-style='taiwan'][data-taiwan-wheel='centre'] [class*='wheelArea_'] {
   transform: none;
-  transition: transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1) 800ms;
+  transition: transform 820ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
 }
