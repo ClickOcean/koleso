@@ -153,10 +153,12 @@ Dexie, база `koleso` (`src/shared/lib/database/db.ts`), версия 1:
 
 Стили: `default`, `genshinImpact` («Далёкий космос», основной), `matrix`, `casino`, `synthwave`, `arcade`,
 `horror`, `newYear`, `terminal`, `steampunk`, `nautical`, `stadium`, `minimalLight`, `highSociety`, `beerParty`,
-`solarSystem`.
+`solarSystem`, `taiwan`.
 Части «Обычного» и «Далёкого космоса» исторически лежат в `domains/wheel/BaseWheel/parts/`, остальные — в своих
 папках тем. У каждой темы, кроме двух первых, есть эмблема в центре по умолчанию (`public/themes/<id>/core.png`,
-сгенерирована в Higgsfield), у `highSociety` и `beerParty` ещё и фоновая сцена `background.jpg` оттуда же.
+сгенерирована в Higgsfield), у `highSociety` и `beerParty` ещё и фоновая сцена `background.jpg` оттуда же, у
+`taiwan` — три фото в ротации и персонажи поверх (см. `docs/theme-authoring.md`). Собственные подписи темы (не
+название в селекте) лежат в локалях под `themes.<id>.*`.
 
 ## Режим «только колесо»
 

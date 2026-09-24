@@ -1,0 +1,72 @@
+/* Taiwan theme: slideshow cross-fade and push-in, the news ticker crawl */
+
+@keyframes taiwan-slide-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes taiwan-ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(var(--taiwan-ken-burns, 1.05));
+  }
+}
+
+@keyframes taiwan-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.taiwan-slide {
+  position: absolute;
+  inset: 0;
+  animation: taiwan-slide-in var(--taiwan-fade, 2500ms) ease-in-out both;
+}
+
+.taiwan-slide-canvas {
+  position: absolute;
+  animation: taiwan-ken-burns var(--taiwan-push, 22500ms) linear both;
+}
+
+.taiwan-slide-canvas img {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  user-select: none;
+}
+
+.taiwan-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: taiwan-ticker 48s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taiwan-slide-canvas,
+  .taiwan-ticker-track {
+    animation: none;
+  }
+}
+
+/*
+ * Room for the news ticker. The page leaves 16px under the wheel (padding of the main area in
+ * App.module.css) and the ticker is 30px tall (NewsTicker.tsx), so the rim sank 14px into it and
+ * looked cut off. Shortening the wheel area by 22px makes the autosizer shrink the wheel so it
+ * ends 8px above the ticker. ThemeRoot sets data-wheel-style on <html>; the CSS-module class is
+ * `_wheelArea_<hash>_<line>`, and nothing else in the app contains "wheelArea_".
+ */
+html[data-wheel-style='taiwan'] [class*='wheelArea_'] {
+  height: calc(100% - 22px);
+}

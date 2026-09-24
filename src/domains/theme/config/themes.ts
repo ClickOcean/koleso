@@ -16,6 +16,7 @@ import solarSystem from '../themes/solarSystem/theme';
 import stadium from '../themes/stadium/theme';
 import steampunk from '../themes/steampunk/theme';
 import synthwave from '../themes/synthwave/theme';
+import taiwan from '../themes/taiwan/theme';
 import terminal from '../themes/terminal/theme';
 
 /**
@@ -39,6 +40,7 @@ export const THEMES: Record<WheelStyle, ThemeDefinition> = {
   highSociety,
   beerParty,
   solarSystem,
+  taiwan,
 };
 
 export const THEME_IDS = Object.keys(THEMES) as WheelStyle[];

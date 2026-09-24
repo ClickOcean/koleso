@@ -85,7 +85,8 @@
       "minimalLight": "Minimal light",
       "highSociety": "High society",
       "beerParty": "Beer party",
-      "solarSystem": "Solar system"
+      "solarSystem": "Solar system",
+      "taiwan": "Taiwan"
     },
     "winner": "Winner",
     "randomSpin": "Random spin time",
@@ -155,5 +156,12 @@
     "yesterday": "Yesterday",
     "empty": "No confirmed spins yet. Spin the wheel and press “Confirm” to add an entry here.",
     "remove": "Delete entry"
+  },
+  "themes": {
+    "taiwan": {
+      "tickerPelosi": "Pelosi",
+      "tickerBuffett": "Buffett",
+      "landing": "Taipei · August 2, 2022"
+    }
   }
 }

@@ -23,7 +23,8 @@ export type WheelStyle =
   | 'minimalLight'
   | 'highSociety'
   | 'beerParty'
-  | 'solarSystem';
+  | 'solarSystem'
+  | 'taiwan';
 
 export interface WheelItemWithAngle extends WheelItem {
   startAngle: number;
