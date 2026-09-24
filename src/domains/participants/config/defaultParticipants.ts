@@ -11,7 +11,6 @@ export const DEFAULT_PARTICIPANT_NAMES: string[] = [
   'Sviatoslav Zakhriapin',
   'Semen Statsenko',
   'Sergei Smirnov',
-  'Semen Nazarov',
   'Kiryl Astapenka',
   'Ilya Shabrov',
   'Dmitry Demyanovich',

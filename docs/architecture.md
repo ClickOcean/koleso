@@ -94,7 +94,7 @@ src/
   (без учёта регистра) пропускает. При первом запуске (`getAll`, таблица пуста, флага
   `localStorage['participants.seeded.v1']` нет) заполняет список из `config/defaultParticipants.ts` и ставит флаг,
   чтобы намеренно очищенный список не заполнялся заново.
-- `config/defaultParticipants.ts` — стартовый состав команды (20 имён из autosave pointauc).
+- `config/defaultParticipants.ts` — стартовый состав команды (19 имён: autosave pointauc без Semen Nazarov).
 - `model/useParticipants.ts` — query `['participants']` и мутации с инвалидацией.
 - `ui/ParticipantsPanel.tsx` — форма добавления (Enter добавляет, Shift+Enter перенос), счётчик, «Включить/выключить
   всех», список `ParticipantRow` (чекбокс, цвет сектора, переименование по двойному клику, удаление с подтверждением).
