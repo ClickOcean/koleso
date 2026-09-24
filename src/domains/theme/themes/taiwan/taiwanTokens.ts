@@ -23,6 +23,10 @@ export const TW_ASSETS = {
   buffett: '/themes/taiwan/buffett.webp',
   /** Three-quarter front view, descending towards the lower left */
   plane: '/themes/taiwan/plane.webp',
+  /** A plain white Airbus in the same view and framing as the jet, for the second flight */
+  airbus: '/themes/taiwan/airbus.webp',
+  /** Round portrait shown on the Airbus */
+  passenger: '/themes/taiwan/passenger.webp',
 };
 
 /** Room between the winner title and the rim, px: the paw sticks out only a little, so the wheel can be bigger */
@@ -72,3 +76,4 @@ export const PELOSI_ASPECT = 1022 / 1400;
 export const PELOSI_FACE_X = 0.45;
 export const BUFFETT_ASPECT = 712 / 900;
 export const PLANE_ASPECT = 1000 / 406;
+export const AIRBUS_ASPECT = 1000 / 405;

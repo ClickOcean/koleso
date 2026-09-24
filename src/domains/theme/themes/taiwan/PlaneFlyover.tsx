@@ -1,28 +1,42 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PLANE_ASPECT, TW_ASSETS, TW_CREAM, TW_GOLD, TW_SERIF } from './taiwanTokens';
+import FlightSprite from './FlightSprite';
+import { AIRBUS_ASPECT, PLANE_ASPECT, TW_ASSETS } from './taiwanTokens';
 
+import type { RefObject } from 'react';
 import type { WheelFrame } from './useWheelFrame';
 
 const FIRST_FLIGHT_MS = 6000;
 const MIN_PAUSE_MS = 45000;
 const MAX_PAUSE_MS = 75000;
 const FLIGHT_MS = 9000;
+/** The airliner comes in this long after the government jet has gone behind the wheel */
+const FOLLOW_GAP_MS = 2000;
 /** Plane width at the end of the approach, share of the window width, capped in px */
 const PLANE_WIDTH = 0.22;
 const PLANE_MAX_WIDTH = 420;
 const START_SCALE = 0.5;
 
+interface FlightRefs {
+  box: RefObject<HTMLDivElement | null>;
+  caption: RefObject<HTMLDivElement | null>;
+  aspect: number;
+}
+
 /**
  * Every minute or so the government jet comes in from the top right, grows as it approaches
- * and descends behind the wheel, towards Taipei. Halfway through, a small caption with the
- * date of the landing (2 August 2022) fades in under it and out again. Off with reduced motion.
+ * and descends behind the wheel, towards Taipei, with the date of Pelosi's landing (2 August
+ * 2022) under it. Two seconds after it, a plain Airbus follows the same path with a passenger's
+ * portrait on the fuselage and the date of the passenger's arrival (27 September 2026). Off with
+ * reduced motion.
  */
 const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
   const { t } = useTranslation();
-  const planeRef = useRef<HTMLDivElement>(null);
-  const captionRef = useRef<HTMLDivElement>(null);
+  const jetBox = useRef<HTMLDivElement>(null);
+  const jetCaption = useRef<HTMLDivElement>(null);
+  const airbusBox = useRef<HTMLDivElement>(null);
+  const airbusCaption = useRef<HTMLDivElement>(null);
   const frameRef = useRef(frame);
 
   useEffect(() => {
@@ -34,23 +48,35 @@ const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
       return;
     }
 
-    let timer: number | null = null;
-    let flight: Animation | null = null;
-    let caption: Animation | null = null;
+    const jet: FlightRefs = { box: jetBox, caption: jetCaption, aspect: PLANE_ASPECT };
+    const airbus: FlightRefs = { box: airbusBox, caption: airbusCaption, aspect: AIRBUS_ASPECT };
+    const timers = new Set<number>();
+    const animations: Animation[] = [];
 
-    const fly = () => {
-      const plane = planeRef.current;
+    const later = (callback: () => void, delay: number) => {
+      const timer = window.setTimeout(() => {
+        timers.delete(timer);
+        callback();
+      }, delay);
+      timers.add(timer);
+    };
+
+    const fly = ({ box, caption, aspect }: FlightRefs) => {
+      const plane = box.current;
       const { width, height, contentRight, wheel } = frameRef.current;
+      if (!plane || !caption.current) {
+        return;
+      }
 
-      if (plane && captionRef.current) {
-        const planeWidth = Math.min(PLANE_MAX_WIDTH, width * PLANE_WIDTH);
-        const startX = contentRight - planeWidth * 0.2;
-        const startY = -planeWidth / PLANE_ASPECT;
-        const endX = wheel ? wheel.right - wheel.size * 0.22 : width * 0.5;
-        const endY = height * 0.36;
+      const planeWidth = Math.min(PLANE_MAX_WIDTH, width * PLANE_WIDTH);
+      const startX = contentRight - planeWidth * 0.2;
+      const startY = -planeWidth / aspect;
+      const endX = wheel ? wheel.right - wheel.size * 0.22 : width * 0.5;
+      const endY = height * 0.36;
 
-        plane.style.width = `${planeWidth}px`;
-        flight = plane.animate(
+      plane.style.width = `${planeWidth}px`;
+      animations.push(
+        plane.animate(
           [
             { transform: `translate(${startX}px, ${startY}px) scale(${START_SCALE})`, opacity: 0 },
             { opacity: 1, offset: 0.08 },
@@ -58,8 +84,8 @@ const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
             { transform: `translate(${endX}px, ${endY}px) scale(1)`, opacity: 0 },
           ],
           { duration: FLIGHT_MS, easing: 'cubic-bezier(0.3, 0.1, 0.55, 1)', fill: 'both' },
-        );
-        caption = captionRef.current.animate(
+        ),
+        caption.current.animate(
           [
             { opacity: 0 },
             { opacity: 0, offset: 0.22 },
@@ -69,57 +95,44 @@ const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
             { opacity: 0 },
           ],
           { duration: FLIGHT_MS, fill: 'both' },
-        );
+        ),
+      );
+      // only the latest pair of animations per plane is kept for cleanup
+      if (animations.length > 4) {
+        animations.splice(0, animations.length - 4);
       }
-
-      timer = window.setTimeout(fly, FLIGHT_MS + MIN_PAUSE_MS + Math.random() * (MAX_PAUSE_MS - MIN_PAUSE_MS));
     };
 
-    timer = window.setTimeout(fly, FIRST_FLIGHT_MS);
+    const flyPair = () => {
+      fly(jet);
+      later(() => fly(airbus), FLIGHT_MS + FOLLOW_GAP_MS);
+      later(flyPair, 2 * FLIGHT_MS + FOLLOW_GAP_MS + MIN_PAUSE_MS + Math.random() * (MAX_PAUSE_MS - MIN_PAUSE_MS));
+    };
+
+    later(flyPair, FIRST_FLIGHT_MS);
 
     return () => {
-      if (timer != null) {
-        window.clearTimeout(timer);
-      }
-      flight?.cancel();
-      caption?.cancel();
+      timers.forEach((timer) => window.clearTimeout(timer));
+      animations.forEach((animation) => animation.cancel());
     };
   }, []);
 
   return (
-    <div
-      ref={planeRef}
-      aria-hidden='true'
-      style={{ position: 'absolute', left: 0, top: 0, opacity: 0, transformOrigin: '0 0', pointerEvents: 'none' }}
-    >
-      <img
-        src={TW_ASSETS.plane}
-        alt=''
-        draggable={false}
-        style={{ width: '100%', maxWidth: 'none', display: 'block' }}
+    <>
+      <FlightSprite
+        boxRef={jetBox}
+        captionRef={jetCaption}
+        plane={TW_ASSETS.plane}
+        caption={t('themes.taiwan.landing')}
       />
-      <div
-        ref={captionRef}
-        style={{
-          display: 'inline-block',
-          marginTop: 6,
-          marginLeft: '12%',
-          opacity: 0,
-          whiteSpace: 'nowrap',
-          fontFamily: TW_SERIF,
-          fontSize: 15,
-          fontWeight: 700,
-          letterSpacing: '0.06em',
-          color: TW_CREAM,
-          borderLeft: `3px solid ${TW_GOLD}`,
-          padding: '2px 10px',
-          background: 'rgba(12, 5, 5, 0.6)',
-          textShadow: '0 1px 3px rgba(0, 0, 0, 0.8)',
-        }}
-      >
-        {t('themes.taiwan.landing')}
-      </div>
-    </div>
+      <FlightSprite
+        boxRef={airbusBox}
+        captionRef={airbusCaption}
+        plane={TW_ASSETS.airbus}
+        caption={t('themes.taiwan.arrival')}
+        passenger={TW_ASSETS.passenger}
+      />
+    </>
   );
 };
 
