@@ -69,7 +69,7 @@ export const SPIN_PROGRAM = {
   catRight: { from: 39, to: 42 },
   pelosi: { from: 42, to: 54 },
   buffett: { from: 48, to: 54 },
-  ticker: { from: 52, to: 54 },
+  ticker: { from: 50, to: 54 },
 } satisfies Record<string, number | SpinWindow>;
 /** How long the characters and the ticker take to roll in */
 export const ENTER_MS = 900;
