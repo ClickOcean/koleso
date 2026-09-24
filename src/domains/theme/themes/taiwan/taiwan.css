@@ -85,3 +85,24 @@
     transition: opacity 700ms ease;
   }
 }
+
+/*
+ * The wheel's walk in the show (useWheelPush sets data-taiwan-wheel and --taiwan-wheel-shift on
+ * <html>): it drifts to the left third, the kitten pushes it to the right third once it has landed,
+ * and the tabby pushes it back to the centre once it has come out. The centre is also where the page
+ * opens, so opening it moves nothing. The CSS-module class is `_wheelArea_<hash>_<line>`.
+ */
+html[data-wheel-style='taiwan'][data-taiwan-wheel='left'] [class*='wheelArea_'] {
+  transform: translateX(calc(-1 * var(--taiwan-wheel-shift, 0px)));
+  transition: transform 900ms cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+html[data-wheel-style='taiwan'][data-taiwan-wheel='right'] [class*='wheelArea_'] {
+  transform: translateX(var(--taiwan-wheel-shift, 0px));
+  transition: transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1) 220ms;
+}
+
+html[data-wheel-style='taiwan'][data-taiwan-wheel='centre'] [class*='wheelArea_'] {
+  transform: none;
+  transition: transform 700ms cubic-bezier(0.2, 0.9, 0.3, 1) 800ms;
+}

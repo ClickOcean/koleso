@@ -65,7 +65,10 @@ const nextLoaded = (current: number, loaded: boolean[]): number | null => {
 const slideBox = (anchorX: number, { width, height, contentRight, wheel }: WheelFrame): SlideBox => {
   const drawnWidth = Math.max(width, height * SLIDE_ASPECT) * SLIDE_ZOOM;
   const drawnHeight = drawnWidth / SLIDE_ASPECT;
-  const target = wheel ? (wheel.right + contentRight) / 2 : width * 0.72;
+  // from where the wheel stands when centred, so the photos stay put while the kitten pushes it across
+  // (useWheelPush); the target is the middle of the gap right of it
+  const centredWheelRight = wheel ? (contentRight + wheel.size) / 2 : null;
+  const target = centredWheelRight != null ? (centredWheelRight + contentRight) / 2 : width * 0.72;
   const left = Math.min(0, Math.max(contentRight - drawnWidth, target - anchorX * drawnWidth));
 
   return {

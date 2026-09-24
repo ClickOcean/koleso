@@ -66,6 +66,11 @@ export const SPIN_PROGRAM = {
   jet: JET_AT,
   airbus: JET_AT + AIRBUS_AFTER_JET,
   catLeft: { from: 34, to: 42 },
+  // the wheel starts in the centre, drifts to the left third, the kitten pushes it to the right third,
+  // and the tabby pushes it back to the centre, where it stays until the next spin
+  wheelLeft: 1,
+  wheelRight: 34,
+  wheelCentre: 39,
   catRight: { from: 39, to: 42 },
   pelosi: { from: 42, to: 54 },
   buffett: { from: 48, to: 54 },
@@ -75,6 +80,10 @@ export const SPIN_PROGRAM = {
 export const ENTER_MS = 900;
 /** The kitten on the left jumps in quickly */
 export const CAT_POP_MS = 320;
+/** Off centre the wheel's centre sits at a third (or two thirds) of the wheel area: this share of its width */
+export const WHEEL_SIDE_SHIFT = 1 / 6;
+/** Off centre the wheel keeps at least this much room from the window edge on narrow windows */
+export const WHEEL_SIDE_MARGIN = 16;
 
 /** Sectors end and the thin gold rim begins here */
 export const RIM_INNER = 0.955;

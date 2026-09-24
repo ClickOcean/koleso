@@ -66,7 +66,7 @@
         "fileTooLargeMessage": "File size exceeds {{maxSize}} limit. Please choose a smaller file.",
         "loadFailed": "Failed to Load Audio",
         "loadFailedMessage": "Could not load the audio file. Please try again or choose a different file.",
-        "notReady": "The music did not start within 10 seconds, spinning without it"
+        "notReady": "The music did not start, spinning without it"
       }
     },
     "style": {

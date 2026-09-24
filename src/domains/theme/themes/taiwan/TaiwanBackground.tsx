@@ -4,6 +4,7 @@ import TaiwanCats from './TaiwanCats';
 import TaiwanCharacters from './TaiwanCharacters';
 import TaiwanSlideshow from './TaiwanSlideshow';
 import { useWheelFrame } from './useWheelFrame';
+import { useWheelPush } from './useWheelPush';
 
 /**
  * The Taiwan scene, back to front: photos of Taiwan in rotation, a light shade at the top and on
@@ -13,6 +14,7 @@ import { useWheelFrame } from './useWheelFrame';
  */
 const TaiwanBackground = () => {
   const frame = useWheelFrame();
+  useWheelPush(frame);
 
   return (
     <div
