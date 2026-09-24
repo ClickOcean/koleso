@@ -48,4 +48,10 @@ export interface ThemeDefinition {
   background: ComponentType;
   ui: ThemeUiTokens;
   select?: ThemeSelectStyle;
+  /**
+   * Switching to this theme (or opening the page with it) turns on presentation mode: the header and
+   * the sidebar hide. The panel button and Esc still bring them back. For themes staged across the
+   * whole screen.
+   */
+  hidesSidebar?: boolean;
 }

@@ -24,6 +24,8 @@ const theme: ThemeDefinition = {
     titleGap: TW_TITLE_GAP,
   },
   background: TaiwanBackground,
+  // the show uses the whole screen: the cats and Buffett come in from behind its right edge
+  hidesSidebar: true,
   ui: {
     ...DEFAULT_UI_TOKENS,
     colorScheme: 'dark',

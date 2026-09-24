@@ -65,7 +65,7 @@ export interface SpinWindow {
 export const SPIN_PROGRAM = {
   jet: JET_AT,
   airbus: JET_AT + AIRBUS_AFTER_JET,
-  catLeft: { from: 35, to: 42 },
+  catLeft: { from: 34, to: 42 },
   catRight: { from: 39, to: 42 },
   pelosi: { from: 42, to: 54 },
   buffett: { from: 48, to: 54 },
