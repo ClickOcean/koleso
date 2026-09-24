@@ -61,12 +61,27 @@
 }
 
 /*
- * Room for the news ticker. The page leaves 16px under the wheel (padding of the main area in
- * App.module.css) and the ticker is 24px tall (TW_TICKER_HEIGHT), so without this the rim sinks
- * into it and looks cut off. Shortening the wheel area by 14px makes the autosizer shrink the
- * wheel so it ends 6px above the ticker. ThemeRoot sets data-wheel-style on <html>; the
- * CSS-module class is `_wheelArea_<hash>_<line>`, and nothing else contains "wheelArea_".
+ * Pelosi, Buffett and the news ticker roll in at their second of the spin (SPIN_PROGRAM); the hidden
+ * transform comes inline from the component, `data-shown` switches it off. With reduced motion they
+ * fade in where they stand instead.
  */
-html[data-wheel-style='taiwan'] [class*='wheelArea_'] {
-  height: calc(100% - 14px);
+.taiwan-enter {
+  transition:
+    transform var(--taiwan-enter, 900ms) cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 400ms ease;
+}
+
+.taiwan-enter[data-shown='false'] {
+  opacity: 0;
+}
+
+.taiwan-enter[data-shown='true'] {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taiwan-enter {
+    transform: none !important;
+    transition: opacity 700ms ease;
+  }
 }

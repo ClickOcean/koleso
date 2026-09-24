@@ -29,14 +29,47 @@ export const TW_ASSETS = {
   passenger: '/themes/taiwan/passenger.webp',
   /** Round portrait of Pelosi shown on the government jet */
   pelosiBadge: '/themes/taiwan/pelosi-badge.webp',
+  /** Ginger kitten jumping in with its paws up, faces right, towards the wheel */
+  catLeft: '/themes/taiwan/cat-left.webp',
+  /** Tabby peeking in from behind the right edge, faces left, towards the wheel */
+  catRight: '/themes/taiwan/cat-right.webp',
 };
 
 /** Room between the winner title and the rim, px: the paw sticks out only a little, so the wheel can be bigger */
 export const TW_TITLE_GAP = 30;
 /** How far the paw may stick out over the rim, px (inside `TW_TITLE_GAP`) */
 export const TW_PAW_PROTRUSION = 26;
-/** News ticker height, px; the theme reserves room for it under the wheel (see taiwan.css) */
-export const TW_TICKER_HEIGHT = 24;
+/** News ticker height, px; it rolls in over the bottom of the wheel, no room is reserved for it */
+export const TW_TICKER_HEIGHT = 30;
+
+/** One flight across the screen, seconds */
+export const PLANE_FLIGHT_S = 9;
+const JET_AT = 9;
+
+/** A stretch of a spin in seconds from its start: something is on stage from `from` to `to` */
+export interface SpinWindow {
+  from: number;
+  to: number;
+}
+
+/**
+ * The show, in seconds from the start of a spin; it replays on every spin. Planes fly at their
+ * second (the Airbus two seconds after the jet has gone), everyone else rolls in at `from` and out
+ * at `to`. A spin that stops before `from` skips that number.
+ */
+export const SPIN_PROGRAM = {
+  jet: JET_AT,
+  airbus: JET_AT + PLANE_FLIGHT_S + 2,
+  catLeft: { from: 35, to: 42 },
+  catRight: { from: 39, to: 42 },
+  pelosi: { from: 42, to: 54 },
+  buffett: { from: 48, to: 54 },
+  ticker: { from: 52, to: 54 },
+} satisfies Record<string, number | SpinWindow>;
+/** How long the characters and the ticker take to roll in */
+export const ENTER_MS = 900;
+/** The kitten on the left jumps in quickly */
+export const CAT_POP_MS = 320;
 
 /** Sectors end and the thin gold rim begins here */
 export const RIM_INNER = 0.955;
@@ -79,3 +112,5 @@ export const PELOSI_FACE_X = 0.45;
 export const BUFFETT_ASPECT = 712 / 900;
 export const PLANE_ASPECT = 1000 / 406;
 export const AIRBUS_ASPECT = 1000 / 405;
+export const CAT_LEFT_ASPECT = 585 / 640;
+export const CAT_RIGHT_ASPECT = 461 / 640;

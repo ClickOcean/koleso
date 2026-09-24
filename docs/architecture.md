@@ -46,6 +46,8 @@ src/
 - `ui/WheelControls.tsx` — кнопка «Крутить», длительность, музыка, стиль, картинка в центре.
 - `ui/FormWheel.tsx` — связывает `BaseWheel` с полями формы (стиль, картинка).
 - `lib/spin.ts` — `getSpinDuration(settings)` и `pickWinner(items)` (равномерный индекс из `crypto.getRandomValues`).
+- `lib/spinTimelineStore.ts` — когда начался прокрут, сколько он длится и идёт ли сейчас (`start`/`stop` из
+  `WheelBoard.onSpin`); по нему фон темы разыгрывает сцены по секундам прокрута (см. «Тайвань» в `theme-authoring.md`).
 - `lib/participantsToWheelItems.ts` — активные участники → секторы с amount = 1 и стабильным цветом по позиции.
 - `lib/hooks/useWheelSettings.ts`, `lib/indexedDbSettingsStore.ts` — настройки в IndexedDB (одна запись).
 - `settings/ui/` — поля формы: `SpinTime`, `RandomSpinConfig`, `RandomSpinSwitch`, `StyleSelect`, `CoreImage`.

@@ -15,6 +15,7 @@ import { resolveWheelParts } from '../BaseWheel/parts/resolveWheelParts';
 import { defaultWheelSettings } from '../lib/hooks/useSavedWheelSettings';
 import { participantsToWheelItems } from '../lib/participantsToWheelItems';
 import { getSpinDuration, pickWinner } from '../lib/spin';
+import { spinTimelineStore } from '../lib/spinTimelineStore';
 import PlayerFactory from '../soundtrack/ui/PlayerFactory';
 import { PlayerRef } from '../soundtrack/ui/PlayerFactory/types';
 
@@ -94,9 +95,11 @@ const WheelBoard = ({
         soundtrackPlayerRef.current?.play(soundtrackConfig.offset ?? 0, soundtrackConfig.volume ?? 0.5);
       }
 
+      spinTimelineStore.start(duration);
       try {
         await spinResult.animate();
       } finally {
+        spinTimelineStore.stop();
         soundtrackPlayerRef.current?.stop();
       }
     },
