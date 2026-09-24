@@ -17,12 +17,14 @@ import {
   FOAM_BUBBLE_MAX,
   FOAM_BUBBLE_MIN,
   FOAM_CREAM,
+  FOAM_HEAD_INNER,
   FOAM_LINE,
   FOAM_RING_OFFSET,
   FOAM_WHITE,
   WOOD_INNER,
   WOOD_OUTER,
 } from './beerPartyTokens';
+import { beerLuminance, useBeerTexture } from './beerTexture';
 import { useFoamTexture } from './foamImage';
 import { createSeededRandom, hashString } from './seededRandom';
 
@@ -34,6 +36,12 @@ const maxTextLength = 21;
 /** Fixed seed for the foam ring and caps, so the cached wheel redraws identically */
 const RIM_SEED = 0xbee12;
 const TWO_PI = 2 * Math.PI;
+/** How strongly the beer photo's grain shows through the poured colour */
+const GRAIN_ALPHA = 0.72;
+/** The photo is drawn larger than the wheel, so its carbonation reads as bubbles rather than noise */
+const GRAIN_ZOOM = 1.3;
+/** The photo already carries the carbonation, so only a few drawn bubbles stay on top for specular pop */
+const GRAIN_BUBBLE_DIVISOR = 3;
 
 type Scale = (value: number) => number;
 const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
@@ -42,6 +50,8 @@ const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
   // once the photo foam head is drawn by the effects layer, the drawn foam below it is skipped
   // (its biggest bubbles would poke out past the photo ring); the re-render rebuilds the cache
   const hasPhotoFoam = useFoamTexture() != null;
+  // the photo of real beer laid over every sector; null until it loads, and the sectors stay procedural
+  const photoBeer = useBeerTexture();
 
   return (
     <CanvasSpinningWheel
@@ -131,6 +141,19 @@ const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
           wedge();
           ctx.clip();
 
+          // real beer over the poured colour: 'overlay' with a greyscale photo modulates only
+          // lightness, so carbonation and swirls appear without tinting the brew — and without
+          // painting gold back onto the sectors the base wheel greyed out
+          const grainSize = radius * 2 * GRAIN_ZOOM;
+          const grain = photoBeer && beerLuminance(photoBeer, grainSize);
+          if (grain) {
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalAlpha = GRAIN_ALPHA;
+            ctx.drawImage(grain, center - grainSize / 2, center - grainSize / 2, grainSize, grainSize);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1;
+          }
+
           // wet glass: a light band along the leading edge, fading into the sector
           const bandCount = 4;
           const bandSpan = Math.min(span * 0.24, 0.16);
@@ -161,7 +184,8 @@ const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
           ringArc(radius * 0.97);
 
           // tiny bubbles, seeded per participant so the cached wheel redraws them in place
-          const bubbleCount = Math.max(3, Math.min(16, Math.round((span / TWO_PI) * 200)));
+          const drawnBubbles = Math.max(3, Math.min(16, Math.round((span / TWO_PI) * 200)));
+          const bubbleCount = grain ? Math.round(drawnBubbles / GRAIN_BUBBLE_DIVISOR) : drawnBubbles;
           const margin = Math.min(span * 0.12, 0.04);
           for (let index = 0; index < bubbleCount; index++) {
             const angle = startAngle + margin + random() * (span - 2 * margin);
@@ -364,13 +388,14 @@ const BeerPartySpinningWheel: FC<SpinningWheelProps> = (props) => {
             ctx.restore();
           }
 
-          // foam running over the counter onto the beer (kept under the photo head: the drips emerge from beneath it)
+          // foam running down into the beer from under the head, which now sits inside the rim;
+          // they start under it so the photo head hides where each one begins
           ctx.save();
           ctx.lineCap = 'round';
           for (let index = 0; index < 5; index++) {
             const angle = random() * TWO_PI;
-            const from = wheelRadius + scale(8);
-            const to = wheelRadius - scale(8 + random() * 14);
+            const from = wheelRadius - scale(FOAM_HEAD_INNER - 6);
+            const to = wheelRadius - scale(FOAM_HEAD_INNER + 4 + random() * 14);
             const width = scale(4 + random() * 3);
             const fromX = center + Math.cos(angle) * from;
             const fromY = center + Math.sin(angle) * from;

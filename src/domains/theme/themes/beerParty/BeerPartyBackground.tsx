@@ -6,12 +6,12 @@ const MEASURE_INTERVAL = 200;
 const FIRST_MEASURE_DELAY = 250;
 const PUFF_COUNT = 16;
 const FLY_COUNT = 2;
-const IMAGE_WIDTH = 1344;
-const IMAGE_HEIGHT = 752;
+const IMAGE_WIDTH = 1792;
+const IMAGE_HEIGHT = 1013;
 /** Where the smoke leaves the barbecue, as a fraction of the picture */
-const GRILL = { x: 0.878, y: 0.22 };
-/** The man in the recliner, as a fraction of the picture width */
-const MAN_ANCHOR = 0.77;
+const GRILL = { x: 0.631, y: 0.3 };
+/** The man in the recliner (his face and chest), as a fraction of the picture width */
+const MAN_ANCHOR = 0.525;
 /** Where the man should land on screen: in the gap between the wheel and the sidebar, or further right without it */
 const MAN_SCREEN_X_WITH_SIDEBAR = 0.685;
 const MAN_SCREEN_X_FULL = 0.8;
@@ -21,13 +21,23 @@ const TABLE_IMAGE = '/themes/beerParty/left.jpg';
 const TABLE_WIDTH = 956;
 const TABLE_HEIGHT = 1440;
 /** The strip fades out over this many px on its right edge, so there is no seam next to the wheel */
-const TABLE_FADE = 120;
+const TABLE_FADE = 200;
+/**
+ * ...and over this share of its height at the top. The lower half of the picture is the lit
+ * table; above it is an out-of-focus room that does not line up with the wall behind the strip,
+ * and where the two met the eye read a hard vertical edge however wide the right fade was.
+ */
+const TABLE_TOP_FADE = 0.52;
 /** Below this strip width (tiny window) the picture is skipped */
-const TABLE_MIN_WIDTH = 140;
+const TABLE_MIN_WIDTH = 120;
 /** Share of the viewport left of the wheel when the wheel cannot be measured */
 const TABLE_FALLBACK_SHARE = 0.22;
-/** The foam head sticks out past the wheel box by about this share of the wheel size */
-const WHEEL_OVERHANG = 0.045;
+/**
+ * The foam head sticks out past the wheel box by about this share of the wheel size.
+ * It is `MAX_OVERHANG / 800`: the head sits inside the rim, so the strip may run much
+ * closer to the wheel than when the head crowned it from outside.
+ */
+const WHEEL_OVERHANG = 0.015;
 const WALL = '#211a10';
 const TWO_PI = 2 * Math.PI;
 
@@ -104,8 +114,9 @@ const measureScene = (width: number, height: number): Scene => {
   const drawnWidth = IMAGE_WIDTH * factor;
   const drawnHeight = height;
   const manX = width * (checkHasSidebar() ? MAN_SCREEN_X_WITH_SIDEBAR : MAN_SCREEN_X_FULL);
-  // never leave the left edge uncovered: the dark wall must reach the viewport edge
-  const offsetX = Math.min(0, manX - MAN_ANCHOR * drawnWidth);
+  // the man lands on his spot whichever way the picture has to slide; a positive offset leaves
+  // a gap at the viewport's left edge, which `paintScene` fills with the photo's own dark wall
+  const offsetX = manX - MAN_ANCHOR * drawnWidth;
   const offsetY = 0;
 
   return {
@@ -125,8 +136,8 @@ const measureScene = (width: number, height: number): Scene => {
 
 /**
  * The coffee table in the strip left of the wheel: scaled to cover the strip (cropped
- * around the picture's centre), dimmed to about 70 % and faded out on its right edge.
- * Composed on its own canvas so the fade erases the picture only, not the wall below.
+ * around the picture's centre), knocked down slightly and dissolved on two edges.
+ * Composed on its own canvas so the fades erase the picture only, not the wall below.
  */
 const paintTable = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, scene: Scene): void => {
   const { tableWidth, height } = scene;
@@ -157,17 +168,31 @@ const paintTable = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, scen
     height,
   );
 
-  stripCtx.fillStyle = 'rgba(18, 12, 6, 0.3)';
+  // only a light knock-down: the photo is already a dim night shot, and dimming it further
+  // left the strip an unreadable smudge next to the lit wheel
+  stripCtx.fillStyle = 'rgba(18, 12, 6, 0.18)';
   stripCtx.fillRect(0, 0, tableWidth, height);
 
-  const fade = Math.min(TABLE_FADE, tableWidth * 0.5);
-  const mask = stripCtx.createLinearGradient(tableWidth - fade, 0, tableWidth, 0);
-  mask.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  mask.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
-  mask.addColorStop(1, 'rgba(0, 0, 0, 1)');
   stripCtx.globalCompositeOperation = 'destination-out';
-  stripCtx.fillStyle = mask;
+
+  const fade = Math.min(TABLE_FADE, tableWidth * 0.6);
+  const rightMask = stripCtx.createLinearGradient(tableWidth - fade, 0, tableWidth, 0);
+  rightMask.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  rightMask.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
+  rightMask.addColorStop(1, 'rgba(0, 0, 0, 1)');
+  stripCtx.fillStyle = rightMask;
   stripCtx.fillRect(tableWidth - fade, 0, fade, height);
+
+  // the top dissolves into the room, so only the lit table is left standing in the strip
+  const topFade = height * TABLE_TOP_FADE;
+  const topMask = stripCtx.createLinearGradient(0, 0, 0, topFade);
+  topMask.addColorStop(0, 'rgba(0, 0, 0, 1)');
+  topMask.addColorStop(0.55, 'rgba(0, 0, 0, 0.55)');
+  topMask.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  stripCtx.fillStyle = topMask;
+  stripCtx.fillRect(0, 0, tableWidth, topFade);
+
+  stripCtx.globalCompositeOperation = 'source-over';
 
   ctx.drawImage(strip, 0, 0);
 };
@@ -188,6 +213,12 @@ const paintScene = (ctx: CanvasRenderingContext2D, pictures: Pictures, scene: Sc
 
   if (pictures.room) {
     ctx.drawImage(pictures.room, offsetX, offsetY, drawnWidth, drawnHeight);
+
+    // when the man has to sit far right the photo starts inside the viewport; its leftmost
+    // column is flat wall shadow, so stretching that one pixel across the gap is seamless
+    if (offsetX > 0) {
+      ctx.drawImage(pictures.room, 0, 0, 1, pictures.room.naturalHeight, 0, offsetY, offsetX, drawnHeight);
+    }
 
     // continue the wall to the right with a mirrored, dimmed copy
     const rightEdge = offsetX + drawnWidth;
@@ -317,6 +348,7 @@ const BeerPartyBackground = () => {
       if (nextHasSidebar !== hasSidebar) {
         hasSidebar = nextHasSidebar;
         resize();
+
         return;
       }
 
@@ -358,6 +390,7 @@ const BeerPartyBackground = () => {
         puff.age += delta;
         if (puff.age >= puff.life) {
           puffs[index] = createPuff(scene, false);
+
           return;
         }
 

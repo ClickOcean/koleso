@@ -160,10 +160,12 @@ export const buildFoamRing = (layout: WheelPartLayout, texture: HTMLImageElement
 
   // soft shadow: onto the background outside the head and onto the beer inside it
   ctx.save();
+  // kept tight: the head sits just inside the rim now, and a wide shadow would be the one
+  // thing still reaching past the bottom of the window (see MAX_OVERHANG)
   ctx.shadowColor = 'rgba(25, 12, 0, 0.5)';
-  ctx.shadowBlur = 12 * scale;
+  ctx.shadowBlur = 8 * scale;
   ctx.shadowOffsetX = 2 * scale;
-  ctx.shadowOffsetY = 4 * scale;
+  ctx.shadowOffsetY = 3 * scale;
   ctx.fillStyle = '#e8d9b4';
   ctx.fill(ring);
   ctx.restore();
