@@ -27,6 +27,8 @@ export const TW_ASSETS = {
   airbus: '/themes/taiwan/airbus.webp',
   /** Round portrait shown on the Airbus */
   passenger: '/themes/taiwan/passenger.webp',
+  /** Round portrait of Pelosi shown on the government jet */
+  pelosiBadge: '/themes/taiwan/pelosi-badge.webp',
 };
 
 /** Room between the winner title and the rim, px: the paw sticks out only a little, so the wheel can be bigger */

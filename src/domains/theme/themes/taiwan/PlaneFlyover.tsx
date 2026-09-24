@@ -26,10 +26,10 @@ interface FlightRefs {
 
 /**
  * Every minute or so the government jet comes in from the top right, grows as it approaches
- * and descends behind the wheel, towards Taipei, with the date of Pelosi's landing (2 August
- * 2022) under it. Two seconds after it, a plain Airbus follows the same path with a passenger's
- * portrait on the fuselage and the date of the passenger's arrival (27 September 2026). Off with
- * reduced motion.
+ * and descends behind the wheel, towards Taipei, with Pelosi's portrait over the fuselage and the
+ * date of her landing (2 August 2022) under it. Two seconds after it, a plain Airbus follows the
+ * same path with another passenger's portrait and the date of that arrival (27 September 2026).
+ * Off with reduced motion.
  */
 const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
   const { t } = useTranslation();
@@ -124,6 +124,7 @@ const PlaneFlyover = ({ frame }: { frame: WheelFrame }) => {
         captionRef={jetCaption}
         plane={TW_ASSETS.plane}
         caption={t('themes.taiwan.landing')}
+        passenger={TW_ASSETS.pelosiBadge}
       />
       <FlightSprite
         boxRef={airbusBox}
