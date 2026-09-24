@@ -34,8 +34,8 @@ interface CanvasSpinningWheelProps extends SpinningWheelProps {
   renderer: CanvasSpinningWheelRenderer;
 }
 
-const clearCanvas = (ctx: CanvasRenderingContext2D, canvasSize: number): void => {
-  ctx.clearRect(0, 0, canvasSize, canvasSize);
+const clearCanvas = (ctx: CanvasRenderingContext2D): void => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 };
 
 const resizeCanvas = (canvas: HTMLCanvasElement | null, size: number): void => {
@@ -84,13 +84,13 @@ const CanvasSpinningWheel: FC<CanvasSpinningWheelProps> = ({
 
   const drawItems = useCallback(
     (ctx: CanvasRenderingContext2D, itemsToDraw: WheelItemWithAngle[], colorResolver: (item: WheelItem) => string) => {
-      clearCanvas(ctx, layout.canvasSize);
+      clearCanvas(ctx);
       renderer.beforeDraw?.(ctx, itemsToDraw, helpers);
       itemsToDraw.forEach((item) => renderer.drawSlice(ctx, item, colorResolver, helpers));
       itemsToDraw.forEach((item) => renderer.drawText(ctx, item, helpers));
       renderer.afterDraw?.(ctx, itemsToDraw, helpers);
     },
-    [helpers, layout.canvasSize, renderer],
+    [helpers, renderer],
   );
 
   const drawWheelFromCache = useCallback(
@@ -102,14 +102,21 @@ const CanvasSpinningWheel: FC<CanvasSpinningWheelProps> = ({
         return;
       }
 
-      clearCanvas(ctx, layout.canvasSize);
+      // Both centers are read from the canvases themselves instead of the `layout`
+      // prop: the spin runs through a gsap tween that keeps calling the callback it
+      // captured when the spin started, so a resize mid-spin (collapsing the sidebar)
+      // would otherwise rotate the freshly resized cache around the previous center.
+      const center = ctx.canvas.width / 2;
+      const cacheCenter = cachedCanvas.width / 2;
+
+      clearCanvas(ctx);
       ctx.save();
-      ctx.translate(layout.center, layout.center);
+      ctx.translate(center, center);
       ctx.rotate((rotation * Math.PI) / 180);
-      ctx.drawImage(cachedCanvas, -layout.center, -layout.center);
+      ctx.drawImage(cachedCanvas, -cacheCenter, -cacheCenter);
       ctx.restore();
     },
-    [layout.canvasSize, layout.center],
+    [],
   );
 
   const redraw = useCallback((): void => {
