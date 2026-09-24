@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 
-import { TW_CREAM, TW_GOLD, TW_JADE, TW_SERIF } from './taiwanTokens';
+import { TW_CREAM, TW_GOLD, TW_JADE, TW_SERIF, TW_TICKER_HEIGHT } from './taiwanTokens';
 
 import type { CSSProperties } from 'react';
 
-const TICKER_HEIGHT = 30;
+const TICKER_HEIGHT = TW_TICKER_HEIGHT;
 /** Pairs per half of the track; the track is two identical halves so the crawl loops seamlessly */
 const PAIRS_PER_HALF = 5;
 
 const labelStyle: CSSProperties = {
   fontFamily: TW_SERIF,
-  fontSize: 15,
+  fontSize: 13,
   fontWeight: 700,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
@@ -30,7 +30,7 @@ const NewsTicker = () => {
       <span style={labelStyle}>{t('themes.taiwan.tickerPelosi')}</span>
       <span
         style={{
-          fontSize: 58,
+          fontSize: 50,
           lineHeight: `${TICKER_HEIGHT}px`,
           color: TW_JADE,
           textShadow: '0 0 14px rgba(53, 208, 127, 0.85), 0 0 3px rgba(0, 0, 0, 0.6)',

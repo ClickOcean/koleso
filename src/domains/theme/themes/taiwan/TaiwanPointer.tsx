@@ -3,18 +3,18 @@ import { useEffect, useState } from 'react';
 import classes from '@domains/wheel/BaseWheel/BaseWheel.module.css';
 
 import TaiwanPointerDrawn from './TaiwanPointerDrawn';
-import { TW_ASSETS } from './taiwanTokens';
+import { TW_ASSETS, TW_PAW_PROTRUSION } from './taiwanTokens';
 
 import type { CSSProperties } from 'react';
 import type { PointerProps } from '@domains/wheel/BaseWheel/parts/types';
 
 /**
- * The paw sticks out over the rim no higher than the gap reserved for the title and reaches
- * `DIP` into the wheel, so the toe beans rest on the sleeping cats (the ring starts at 0.75 R).
+ * The theme keeps only a small gap under the title (`TW_TITLE_GAP`), so the paw sticks out over
+ * the rim by at most `TW_PAW_PROTRUSION` and reaches `DIP` into the wheel, across the thin cat
+ * ring (0.895 R), with the toe beans at the edge of the sectors.
  */
-const PROTRUSION_RATIO = 0.08;
-const PROTRUSION_MAX = 64;
-const DIP = 44;
+const PROTRUSION_RATIO = 0.03;
+const DIP = 46;
 
 type LoadState = 'loading' | 'ready' | 'missing';
 
@@ -53,7 +53,7 @@ const TaiwanPointer = ({ layout }: PointerProps) => {
     return <TaiwanPointerDrawn layout={layout} />;
   }
 
-  const protrusion = Math.min(PROTRUSION_MAX, Math.round(layout.targetWheelSize * PROTRUSION_RATIO));
+  const protrusion = Math.min(TW_PAW_PROTRUSION, Math.round(layout.targetWheelSize * PROTRUSION_RATIO));
   const dip = Math.round(layout.scale * DIP);
   const style: CSSProperties = {
     height: protrusion + dip,

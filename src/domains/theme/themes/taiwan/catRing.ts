@@ -1,6 +1,15 @@
 import { createImageAsset } from '../beerParty/imageAsset';
 
-import { CAT_RING_INNER, TW_GOLD, TW_GOLD_DARK, TW_GOLD_LIGHT, TW_RED, TW_RED_DEEP, TW_ASSETS } from './taiwanTokens';
+import {
+  CAT_RING_EXTENT,
+  CAT_RING_INNER,
+  TW_ASSETS,
+  TW_GOLD,
+  TW_GOLD_DARK,
+  TW_GOLD_LIGHT,
+  TW_RED,
+  TW_RED_DEEP,
+} from './taiwanTokens';
 
 import type { WheelPartLayout } from '@domains/wheel/BaseWheel/parts/types';
 
@@ -44,8 +53,8 @@ const drawFallbackRim = (ctx: CanvasRenderingContext2D, layout: WheelPartLayout)
 
 /**
  * Draws the rim of sleeping cats over the sectors, into the cached wheel canvas, so the cats spin
- * with the wheel. The photo is a cut-out annulus whose outer edge is the wheel edge, so it is
- * stretched exactly over the wheel.
+ * with the wheel. The picture is centred on the wheel and spans `CAT_RING_EXTENT` radii, so the
+ * kittens that peek over the edge are not cut off.
  */
 export const drawCatRing = (
   ctx: CanvasRenderingContext2D,
@@ -58,9 +67,9 @@ export const drawCatRing = (
     return;
   }
 
-  const { center, wheelRadius } = layout;
+  const radius = layout.wheelRadius * CAT_RING_EXTENT;
   ctx.save();
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(image, center - wheelRadius, center - wheelRadius, wheelRadius * 2, wheelRadius * 2);
+  ctx.drawImage(image, layout.center - radius, layout.center - radius, radius * 2, radius * 2);
   ctx.restore();
 };

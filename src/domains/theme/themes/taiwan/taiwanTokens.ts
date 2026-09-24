@@ -15,7 +15,7 @@ export const TW_SERIF = 'Georgia, "Times New Roman", "Noto Serif", serif';
 
 export const TW_ASSETS = {
   core: '/themes/taiwan/core.png',
-  /** Rim of sleeping cats cut out of the generated wheel, transparent inside and outside */
+  /** Thin lacquer rim with 54 sleeping kittens, composed from generated kitten sprites (see docs) */
   catRing: '/themes/taiwan/cat-ring.webp',
   /** Cat paw reaching down, the top fades out so it emerges from nothing */
   pointer: '/themes/taiwan/pointer.png',
@@ -27,14 +27,23 @@ export const TW_ASSETS = {
   plane: '/themes/taiwan/plane.webp',
 };
 
-/** The cat ring photo covers the wheel from here to the edge (cut at its inner gold line) */
-export const CAT_RING_INNER = 0.748;
+/** Room between the winner title and the rim, px: the paw sticks out only a little, so the wheel can be bigger */
+export const TW_TITLE_GAP = 30;
+/** How far the paw may stick out over the rim, px (inside `TW_TITLE_GAP`) */
+export const TW_PAW_PROTRUSION = 26;
+/** News ticker height, px; the theme reserves room for it under the wheel (see taiwan.css) */
+export const TW_TICKER_HEIGHT = 24;
+
+/** The cat ring starts here: its gold line on the sector side (there is no outer wall over the cats) */
+export const CAT_RING_INNER = 0.895;
+/** The ring picture spans this many wheel radii from the centre: the kittens peek over the edge a little */
+export const CAT_RING_EXTENT = 1.03;
 /** Names end here, clear of the ring */
-export const LABEL_OUTER = 0.715;
+export const LABEL_OUTER = 0.865;
 /** Names may start here at the earliest, just outside the hub (the hub is 0.2 R) */
 export const LABEL_INNER = 0.26;
 /** Thin inlay in the participant hue, just inside the ring */
-export const INLAY_INNER = 0.722;
+export const INLAY_INNER = 0.872;
 /** Gold ring around the hub */
 export const HUB_RING = 0.205;
 

@@ -5,7 +5,7 @@ import TaiwanBackground from './TaiwanBackground';
 import TaiwanEffects from './TaiwanEffects';
 import TaiwanPointer from './TaiwanPointer';
 import TaiwanWheel from './TaiwanWheel';
-import { TW_ASSETS, TW_CREAM, TW_RED, TW_SERIF } from './taiwanTokens';
+import { TW_ASSETS, TW_CREAM, TW_RED, TW_SERIF, TW_TITLE_GAP } from './taiwanTokens';
 
 import './taiwan.css';
 
@@ -21,6 +21,7 @@ const theme: ThemeDefinition = {
     pointer: TaiwanPointer,
     effects: TaiwanEffects,
     coreImage: TW_ASSETS.core,
+    titleGap: TW_TITLE_GAP,
   },
   background: TaiwanBackground,
   ui: {

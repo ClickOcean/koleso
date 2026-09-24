@@ -62,11 +62,11 @@
 
 /*
  * Room for the news ticker. The page leaves 16px under the wheel (padding of the main area in
- * App.module.css) and the ticker is 30px tall (NewsTicker.tsx), so the rim sank 14px into it and
- * looked cut off. Shortening the wheel area by 22px makes the autosizer shrink the wheel so it
- * ends 8px above the ticker. ThemeRoot sets data-wheel-style on <html>; the CSS-module class is
- * `_wheelArea_<hash>_<line>`, and nothing else in the app contains "wheelArea_".
+ * App.module.css) and the ticker is 24px tall (TW_TICKER_HEIGHT), so without this the rim sinks
+ * into it and looks cut off. Shortening the wheel area by 14px makes the autosizer shrink the
+ * wheel so it ends 6px above the ticker. ThemeRoot sets data-wheel-style on <html>; the
+ * CSS-module class is `_wheelArea_<hash>_<line>`, and nothing else contains "wheelArea_".
  */
 html[data-wheel-style='taiwan'] [class*='wheelArea_'] {
-  height: calc(100% - 22px);
+  height: calc(100% - 14px);
 }

@@ -11,8 +11,8 @@ const PELOSI_FACE_IN_GAP = 0.5;
 const BUFFETT_HEIGHT = 0.4;
 const BUFFETT_MIN_HEIGHT = 170;
 const BUFFETT_GAP_FILL = 1.05;
-/** Ticker height he stands on */
-const TICKER_CLEARANCE = 18;
+/** He stands just above the ticker */
+const TICKER_CLEARANCE = 14;
 
 const imageStyle: CSSProperties = {
   position: 'absolute',
