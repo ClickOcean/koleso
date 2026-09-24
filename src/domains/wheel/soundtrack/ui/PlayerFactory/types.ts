@@ -11,7 +11,8 @@ export interface PlayerProps<T extends Wheel.SoundtrackSource> {
 }
 
 export interface PlayerRef {
-  play(offset: number, volume: number): void;
+  /** Starts playback from `offset`; resolves true once the sound is actually playing, false if it fails */
+  play(offset: number, volume: number): Promise<boolean>;
   setVolume(volume: number): void;
   stop(): void;
 }

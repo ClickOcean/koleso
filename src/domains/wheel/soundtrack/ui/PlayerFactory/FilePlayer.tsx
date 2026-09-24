@@ -1,5 +1,7 @@
 import { useEffect, useImperativeHandle, useMemo } from 'react';
 
+import { waitForPlayback } from '../../lib/waitForPlayback';
+
 import { PlayerProps, PlayerRef } from './types';
 
 type FilePlayerProps = PlayerProps<Wheel.SoundtrackSourceFile>;
@@ -36,10 +38,16 @@ const FilePlayer = ({ source, ref, onTimeUpdate, onReady }: FilePlayerProps) => 
   useImperativeHandle(
     ref,
     () => ({
-      play: (offset: number, volume: number) => {
+      play: async (offset: number, volume: number) => {
         audio.volume = volume;
         audio.currentTime = offset;
-        audio.play();
+        try {
+          await audio.play();
+        } catch {
+          return false;
+        }
+
+        return waitForPlayback(audio, offset);
       },
       stop: () => {
         audio.pause();

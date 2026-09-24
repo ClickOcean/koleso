@@ -45,6 +45,11 @@ export const TW_TICKER_HEIGHT = 30;
 /** One flight across the screen, seconds */
 export const PLANE_FLIGHT_S = 9;
 const JET_AT = 9;
+/**
+ * The Airbus comes in this long after the jet: by then the jet is going behind the wheel and its
+ * date has faded (at 0.62 of the flight), so the two captions never meet
+ */
+const AIRBUS_AFTER_JET = 5;
 
 /** A stretch of a spin in seconds from its start: something is on stage from `from` to `to` */
 export interface SpinWindow {
@@ -54,12 +59,12 @@ export interface SpinWindow {
 
 /**
  * The show, in seconds from the start of a spin; it replays on every spin. Planes fly at their
- * second (the Airbus two seconds after the jet has gone), everyone else rolls in at `from` and out
+ * second (the Airbus as the jet goes behind the wheel), everyone else rolls in at `from` and out
  * at `to`. A spin that stops before `from` skips that number.
  */
 export const SPIN_PROGRAM = {
   jet: JET_AT,
-  airbus: JET_AT + PLANE_FLIGHT_S + 2,
+  airbus: JET_AT + AIRBUS_AFTER_JET,
   catLeft: { from: 35, to: 42 },
   catRight: { from: 39, to: 42 },
   pelosi: { from: 42, to: 54 },

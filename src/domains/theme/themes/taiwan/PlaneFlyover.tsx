@@ -23,7 +23,7 @@ interface FlightRefs {
 /**
  * The government jet comes in from the top right at its second of every spin (`SPIN_PROGRAM`),
  * grows as it approaches and descends behind the wheel, towards Taipei, with Pelosi's portrait over
- * the fuselage and the date of her landing (2 August 2022) under it. Two seconds after it has gone
+ * the fuselage and the date of her landing (2 August 2022) under it. As it goes behind the wheel
  * a plain Airbus takes the same path with another passenger's portrait and the date of that
  * arrival (27 September 2026). A spin shorter than the cue has no flight. Off with reduced motion.
  */

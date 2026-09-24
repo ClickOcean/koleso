@@ -16,6 +16,7 @@ import { defaultWheelSettings } from '../lib/hooks/useSavedWheelSettings';
 import { participantsToWheelItems } from '../lib/participantsToWheelItems';
 import { getSpinDuration, pickWinner } from '../lib/spin';
 import { spinTimelineStore } from '../lib/spinTimelineStore';
+import { startPlaybackWithin } from '../soundtrack/lib/waitForPlayback';
 import PlayerFactory from '../soundtrack/ui/PlayerFactory';
 import { PlayerRef } from '../soundtrack/ui/PlayerFactory/types';
 
@@ -23,6 +24,9 @@ import FormWheel from './FormWheel';
 import WheelControls from './WheelControls';
 import WinnerActions from './WinnerActions';
 import styles from './WheelBoard.module.css';
+
+/** How long a spin waits for its music to start before it spins without it */
+const SOUNDTRACK_START_TIMEOUT_MS = 10000;
 
 import type { WheelController } from '../BaseWheel/BaseWheel';
 
@@ -88,13 +92,24 @@ const WheelBoard = ({
 
       const duration = getSpinDuration(settings);
       const winner = pickWinner(wheelController.current.getItems());
-      const spinResult = wheelController.current.spin({ duration, winnerId: winner.id });
 
+      // the wheel waits for its music: the spin (and the theme's timed show) starts together with the
+      // sound, not while YouTube is still seeking and buffering
       const soundtrackConfig = settings.soundtrack;
-      if (soundtrackConfig?.enabled && soundtrackConfig.source) {
-        soundtrackPlayerRef.current?.play(soundtrackConfig.offset ?? 0, soundtrackConfig.volume ?? 0.5);
+      const player = soundtrackPlayerRef.current;
+      if (soundtrackConfig?.enabled && soundtrackConfig.source && player) {
+        const isPlaying = await startPlaybackWithin(
+          () => player.play(soundtrackConfig.offset ?? 0, soundtrackConfig.volume ?? 0.5),
+          SOUNDTRACK_START_TIMEOUT_MS,
+        );
+        if (!isPlaying) {
+          player.stop();
+          notifications.show({ message: t('wheel.soundtrack.errors.notReady'), color: 'yellow' });
+        }
       }
 
+      if (!wheelController.current) return;
+      const spinResult = wheelController.current.spin({ duration, winnerId: winner.id });
       spinTimelineStore.start(duration);
       try {
         await spinResult.animate();
@@ -103,7 +118,7 @@ const WheelBoard = ({
         soundtrackPlayerRef.current?.stop();
       }
     },
-    [canSpin],
+    [canSpin, t],
   );
 
   const submitSpin = useCallback(() => {

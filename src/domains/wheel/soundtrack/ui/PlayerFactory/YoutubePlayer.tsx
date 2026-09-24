@@ -1,6 +1,8 @@
 import { useCallback, useImperativeHandle, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 
+import { waitForPlayback } from '../../lib/waitForPlayback';
+
 import { PlayerProps } from './types';
 
 type YoutubePlayerProps = PlayerProps<Wheel.SoundtrackSourceYoutube>;
@@ -20,11 +22,19 @@ const YoutubePlayer = ({
   useImperativeHandle(
     ref,
     () => ({
-      play: (offset: number, volume: number) => {
-        if (!playerRef.current) return;
-        playerRef.current.currentTime = offset;
-        playerRef.current.volume = volume;
-        playerRef.current.play();
+      play: async (offset: number, volume: number) => {
+        const player = playerRef.current;
+        if (!player) return false;
+        player.currentTime = offset;
+        player.volume = volume;
+        try {
+          await player.play();
+        } catch {
+          return false;
+        }
+
+        // the YouTube element resolves play() before it has seeked and buffered
+        return waitForPlayback(player, offset);
       },
       stop: () => {
         if (!playerRef.current) return;

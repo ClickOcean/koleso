@@ -56,8 +56,13 @@ src/
 ### Поток прокрута
 
 1. `WheelControls` сабмитит форму (кнопка или пробел через `useHotkeys`).
-2. `WheelBoard.onSpin`: `clearWinner()` → `getSpinDuration` → `pickWinner(controller.getItems())` →
-   `controller.spin(...)` → запуск плеера (если включён) → `await animate()` → стоп плеера.
+2. `WheelBoard.onSpin`: `clearWinner()` → `getSpinDuration` → `pickWinner(controller.getItems())` → если музыка
+   включена, `await player.play(...)` (не дольше 10 с, `SOUNDTRACK_START_TIMEOUT_MS`) → `controller.spin(...)` и
+   `spinTimelineStore.start` → `await animate()` → `spinTimelineStore.stop` и стоп плеера. Колесо ждёт музыку: иначе
+   YouTube, который после `play()` ещё перематывает к отступу и буферизует, начинал играть на 0,5–3 с позже колеса,
+   а вместе с ним съезжала и программа темы. Если звук не пошёл за 10 с, плеер останавливается, показывается
+   уведомление `wheel.soundtrack.errors.notReady`, и колесо крутится без музыки. Пока ждём, кнопка в состоянии
+   «Крутимся…», пробел повторно не запускает.
 3. `BaseWheel` показывает `WinnerBackdrop` с `WinnerActions`.
 4. «Подтвердить» → `onWinnerConfirmed(winner)` → `spinsRepository.add` → уведомление → `clearWinner()`.
    «Крутить ещё раз» → `clearWinner()` и новый сабмит, в историю ничего не пишется.
@@ -87,7 +92,10 @@ src/
   через `onDurationChange` в `SoundtrackSourceConfig`. `LoopMarkers` при нулевой длительности ничего не рисует.
 - `ui/SoundtrackSourceConfig` — таймлайн (`AudioTimeline`), отступ, громкость, тест-проигрывание, включение.
 - `ui/PlayerFactory` — `FilePlayer` (HTMLAudio) и `YoutubePlayer` (react-player, скрытый). Ref `PlayerRef`:
-  `play(offset, volume)`, `stop()`, `setVolume()`.
+  `play(offset, volume): Promise<boolean>` — true, когда звук реально пошёл (`lib/waitForPlayback.ts` опрашивает
+  позицию: не на паузе и сдвинулась дальше отступа; `play()` у YouTube-элемента резолвится раньше), `stop()`,
+  `setVolume()`. Заранее перематывать YouTube на паузе нельзя: у ни разу не игравшего ролика YouTube API после
+  перемотки сам начинает играть.
 - `lib/useAudioPlayback.ts` + `lib/adapters/*` — только для извлечения волны (waveform) в модалке.
 
 ## Домен `participants`
