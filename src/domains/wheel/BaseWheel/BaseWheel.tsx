@@ -77,6 +77,7 @@ const BaseWheel = <T extends WheelItem>(props: BaseWheelProps<T>) => {
   }, [normalizedItems]);
 
   const coreBackground = useMemo(() => (coreImage ? `url(${coreImage})` : 'none'), [coreImage]);
+  const titleGap = parts.titleGap ?? WHEEL_TITLE_GAP;
   const coreSize = layout ? layout.targetWheelSize * 0.2 : 160;
   const coreBorderWidth = layout ? Math.max(2, (layout.targetWheelSize / 800) * 3) : 3;
 
@@ -103,7 +104,7 @@ const BaseWheel = <T extends WheelItem>(props: BaseWheelProps<T>) => {
     if (!wrapper.current || !spinTarget.current) return;
 
     const targetWheelSize = Math.min(
-      wrapper.current.clientHeight - WHEEL_TITLE_GAP - spinTarget.current.clientHeight,
+      wrapper.current.clientHeight - titleGap - spinTarget.current.clientHeight,
       wrapper.current.clientWidth,
     );
 
@@ -121,7 +122,7 @@ const BaseWheel = <T extends WheelItem>(props: BaseWheelProps<T>) => {
       onOptimalSizeChange?.(nextLayout.targetWheelSize);
       return nextLayout;
     });
-  }, [onOptimalSizeChange]);
+  }, [onOptimalSizeChange, titleGap]);
 
   useLayoutEffect(() => {
     const resizeObserver = new ResizeObserver(
@@ -260,7 +261,7 @@ const BaseWheel = <T extends WheelItem>(props: BaseWheelProps<T>) => {
       ref={wrapper}
     >
       <div>
-        <Title order={2} className={classes.wheelTarget} ref={spinTarget} style={{ marginBottom: WHEEL_TITLE_GAP }}>
+        <Title order={2} className={classes.wheelTarget} ref={spinTarget} style={{ marginBottom: titleGap }}>
           {t('wheel.winner')}
         </Title>
         <div

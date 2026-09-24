@@ -40,7 +40,8 @@ src/
 - `ui/WheelBoard.tsx` — главный компонент: форма настроек (react-hook-form), плеер музыки, поток прокрута,
   кнопки «Подтвердить» / «Крутить ещё раз». Принимает `participants`, `initialSettings`, `onSettingsChanged`,
   `onWinnerConfirmed`, `sidebarExtra`. Раскладка: `.wheelArea` (flex: 1, колесо по центру) + `.sidebar` (27rem).
-  Размер колеса считает `BaseWheel/FlexboxAutosizer` как min(ширина области, высота − 58px); родитель колеса
+  Размер колеса считает `BaseWheel/FlexboxAutosizer` как min(ширина области, высота − `titleGap` − 36 px), где
+  `titleGap` — зазор над ободом из `parts` темы (по умолчанию `WHEEL_TITLE_GAP` = 72 px); родитель колеса
   обязан иметь явный `gap` (иначе `parseFloat('normal')` даёт NaN).
 - `ui/WheelControls.tsx` — кнопка «Крутить», длительность, музыка, стиль, картинка в центре.
 - `ui/FormWheel.tsx` — связывает `BaseWheel` с полями формы (стиль, картинка).
@@ -144,7 +145,8 @@ Dexie, база `koleso` (`src/shared/lib/database/db.ts`), версия 1:
 - **Части колеса** (`parts`): `spinningWheel` — рендерер для `CanvasSpinningWheel` (`drawSlice`, `drawText`,
   `afterDraw`, всё через `scale()`; подписи размещает общий `parts/sectorText.ts`: прижимает имя к внешней границе
   с отступом от обода и уменьшает шрифт, если имя не помещается), `pointer`, `effects` (анимация на отдельном
-  canvas), `coreImage` (картинка в центре по умолчанию, `public/themes/<id>/`). `resolveWheelParts` в
+  canvas), `coreImage` (картинка в центре по умолчанию, `public/themes/<id>/`), `titleGap` (зазор между именем
+  победителя и ободом, если стрелка темы ниже обычной). `resolveWheelParts` в
   `domains/wheel` просто читает реестр.
 - **Фон** (`background`): полноэкранный компонент, рендерит `ui/ThemeRoot.tsx` в `App`.
 - **Токены интерфейса** (`ui`): `ThemeRoot` пишет их в CSS-переменные `--theme-*` на `<html>` и ставит

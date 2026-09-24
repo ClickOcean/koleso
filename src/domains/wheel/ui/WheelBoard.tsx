@@ -11,6 +11,7 @@ import { activeWheelStyleStore } from '@domains/theme/model/activeWheelStyleStor
 import { WheelItem } from '@models/wheel.model';
 
 import WheelFlexboxAutosizer from '../BaseWheel/FlexboxAutosizer';
+import { resolveWheelParts } from '../BaseWheel/parts/resolveWheelParts';
 import { defaultWheelSettings } from '../lib/hooks/useSavedWheelSettings';
 import { participantsToWheelItems } from '../lib/participantsToWheelItems';
 import { getSpinDuration, pickWinner } from '../lib/spin';
@@ -58,6 +59,7 @@ const WheelBoard = ({
   const soundtrack = form.watch('soundtrack');
   const soundtrackSource = soundtrack?.enabled ? soundtrack.source : null;
   const wheelStyles = form.watch('wheelStyles');
+  const titleGap = resolveWheelParts(wheelStyles).titleGap;
 
   useEffect(() => {
     activeWheelStyleStore.set(wheelStyles);
@@ -137,9 +139,11 @@ const WheelBoard = ({
   return (
     <FormProvider {...form}>
       <form className={styles.board} onSubmit={handleSubmit(onSpin)}>
-        {soundtrackSource != null && <PlayerFactory source={soundtrackSource} ref={soundtrackPlayerRef} displayAs='hidden' />}
+        {soundtrackSource != null && (
+          <PlayerFactory source={soundtrackSource} ref={soundtrackPlayerRef} displayAs='hidden' />
+        )}
         <div className={styles.wheelArea}>
-          <WheelFlexboxAutosizer>
+          <WheelFlexboxAutosizer titleGap={titleGap}>
             {({ onOptimalSizeChange }) => (
               <FormWheel
                 items={items}

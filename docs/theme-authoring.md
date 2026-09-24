@@ -65,7 +65,9 @@ const theme: ThemeDefinition = {
 `.wheelArea` (см. `taiwan.css`): размер колеса считается от высоты этой области.
 
 `pointer` — компонент `({ layout }) => JSX`. Он может торчать над ободом не больше чем на ~0.08 размера колеса
-(столько зарезервировано под него зазором `WHEEL_TITLE_GAP`). Три способа: `<img>` со сгенерированной картинкой
+(столько зарезервировано под него зазором `WHEEL_TITLE_GAP` = 72 px между именем победителя и ободом). Если стрелка
+темы ниже, тема может уменьшить этот зазор полем `parts.titleGap` (px): колесо станет крупнее и поднимется выше
+(у «Тайваня» 30 px при лапе, выступающей на 26 px). Зазор учитывают и `BaseWheel`, и `FlexboxAutosizer`. Три способа: `<img>` со сгенерированной картинкой
 (см. `BeerPartyPointer`: проба загрузки и рисованный запасной вариант), SVG с классом `classes.wheelPointer` из
 `BaseWheel.module.css` и `transform: translate(-50%, -36%)` (см. `MatrixPointer`), или canvas на весь холст
 (см. `GenshinPointer` в `src/domains/wheel/BaseWheel/parts/pointer/`). Стрелка указывает вниз на верх колеса.

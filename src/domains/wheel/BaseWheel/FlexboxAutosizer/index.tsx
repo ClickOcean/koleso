@@ -10,13 +10,15 @@ interface ChildProps {
 
 interface Props {
   children: (props: ChildProps) => React.ReactNode;
+  /** Room between the title and the rim, the same value BaseWheel uses (`parts.titleGap`) */
+  titleGap?: number;
 }
 
 const getMinWidth = (element: Element): number => {
   return parseFloat(getComputedStyle(element).minWidth);
 };
 
-const WheelFlexboxAutosizer = ({ children }: Props) => {
+const WheelFlexboxAutosizer = ({ children, titleGap = WHEEL_TITLE_GAP }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const staticContainerRef = useRef<HTMLDivElement>(null);
 
@@ -37,12 +39,9 @@ const WheelFlexboxAutosizer = ({ children }: Props) => {
   const getWheelSize = useCallback(() => {
     if (!containerRef.current) return;
     const availableSpace = getAvailableSpace();
-    const wheelSize = Math.min(
-      availableSpace,
-      containerRef.current.clientHeight - WHEEL_TITLE_GAP - WHEEL_TITLE_HEIGHT,
-    );
+    const wheelSize = Math.min(availableSpace, containerRef.current.clientHeight - titleGap - WHEEL_TITLE_HEIGHT);
     return wheelSize;
-  }, []);
+  }, [titleGap]);
 
   const updateWheelSize = useCallback(() => {
     if (!containerRef.current) return;

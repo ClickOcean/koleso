@@ -46,4 +46,9 @@ export interface ResolvedWheelParts {
   effects: ComponentType<EffectsProps> | null;
   /** Image shown in the wheel hub when the user has not chosen their own */
   coreImage?: string;
+  /**
+   * Room between the winner title and the rim, px. Defaults to `WHEEL_TITLE_GAP`, which fits the
+   * tallest pointer of all themes; a theme with a low pointer can lower it to get a bigger wheel.
+   */
+  titleGap?: number;
 }
