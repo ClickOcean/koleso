@@ -82,7 +82,8 @@
 @media (prefers-reduced-motion: reduce) {
   .taiwan-enter {
     transform: none !important;
-    transition: opacity 700ms ease;
+    translate: none !important;
+    transition: opacity 700ms ease !important;
   }
 }
 
@@ -104,7 +105,8 @@ html[data-wheel-style='taiwan'][data-taiwan-wheel='right'] [class*='wheelArea_']
 
 /*
  * The tabby slides in over 900ms with a strong ease-out and touches the wheel ~80ms in, so the wheel
- * starts right then and takes the same curve: it moves as if the paw drove it.
+ * starts right then and takes the same curve: it moves as if the paw drove it. Same numbers as
+ * TABBY_PUSH in taiwanTokens.ts, which the kitten's nudge uses.
  */
 html[data-wheel-style='taiwan'][data-taiwan-wheel='centre'] [class*='wheelArea_'] {
   transform: none;

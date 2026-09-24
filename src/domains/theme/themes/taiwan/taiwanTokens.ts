@@ -66,6 +66,8 @@ export const SPIN_PROGRAM = {
   jet: JET_AT,
   airbus: JET_AT + AIRBUS_AFTER_JET,
   catLeft: { from: 34, to: 42 },
+  // the wheel pushed back to the centre shoves the kitten a little to the left; it leaves from there
+  catLeftNudge: { from: 39, to: 43 },
   // the wheel starts in the centre, drifts to the left third, the kitten pushes it to the right third,
   // and the tabby pushes it back to the centre, where it stays until the next spin
   wheelLeft: 1,
@@ -84,6 +86,13 @@ export const CAT_POP_MS = 320;
 export const WHEEL_SIDE_SHIFT = 1 / 6;
 /** Off centre the wheel keeps at least this much room from the window edge on narrow windows */
 export const WHEEL_SIDE_MARGIN = 16;
+/**
+ * The tabby's push back to the centre: starts when its paw touches the rim and takes its curve. The
+ * wheel's transition in taiwan.css (`data-taiwan-wheel='centre'`) uses the same numbers.
+ */
+export const TABBY_PUSH = { delayMs: 80, durationMs: 820, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' };
+/** How far the wheel shoves the kitten, as a share of the wheel's own move */
+export const KITTEN_NUDGE = 0.45;
 
 /** Sectors end and the thin gold rim begins here */
 export const RIM_INNER = 0.955;

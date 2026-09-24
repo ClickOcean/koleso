@@ -8,6 +8,18 @@ import type { WheelFrame } from './useWheelFrame';
 
 type WheelPlace = 'centre' | 'left' | 'right';
 
+/**
+ * How far the wheel moves off centre, px: a sixth of the wheel area, but never closer than the margin
+ * to the window edge. Measured from where the wheel stands when centred, so it does not change while
+ * the wheel moves.
+ */
+export const wheelSideShift = ({ contentRight, wheel }: WheelFrame): number => {
+  const size = wheel?.size ?? 0;
+  const centredLeft = (contentRight - size) / 2;
+
+  return Math.max(0, Math.min(contentRight * WHEEL_SIDE_SHIFT, centredLeft - WHEEL_SIDE_MARGIN));
+};
+
 const MOVES: [number, WheelPlace][] = [
   [SPIN_PROGRAM.wheelLeft, 'left'],
   [SPIN_PROGRAM.wheelRight, 'right'],
@@ -21,7 +33,7 @@ const MOVES: [number, WheelPlace][] = [
  * while the wheel spins; a spin that stops before the kitten comes sends it back to the centre. The
  * theme CSS moves the wheel area (`taiwan.css`, `data-taiwan-wheel` on <html>).
  */
-export const useWheelPush = ({ contentRight, wheel }: WheelFrame): void => {
+export const useWheelPush = (frame: WheelFrame): void => {
   const { spinId, isSpinning, startedAt } = useSpinTimeline();
   const [place, setPlace] = useState<WheelPlace>('centre');
 
@@ -52,10 +64,7 @@ export const useWheelPush = ({ contentRight, wheel }: WheelFrame): void => {
     }
   }, [isSpinning]);
 
-  // measured from where the wheel stands when centred, so the shift does not change while it moves
-  const size = wheel?.size ?? 0;
-  const centredLeft = (contentRight - size) / 2;
-  const shift = Math.max(0, Math.min(contentRight * WHEEL_SIDE_SHIFT, centredLeft - WHEEL_SIDE_MARGIN));
+  const shift = wheelSideShift(frame);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
