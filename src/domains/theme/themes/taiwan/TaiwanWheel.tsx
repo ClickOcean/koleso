@@ -5,41 +5,16 @@ import { WheelItem, WheelItemWithAngle } from '@models/wheel.model';
 import CanvasSpinningWheel from '@domains/wheel/BaseWheel/parts/spinning-wheel/CanvasSpinningWheel';
 import { fitSectorText } from '@domains/wheel/BaseWheel/parts/sectorText';
 
-import { useImageAsset } from '../beerParty/imageAsset';
-
-import { catRingAsset, drawCatRing } from './catRing';
+import { drawRim, goldMetal } from './rim';
 import { createSectorPalette, TextStyle } from './taiwanPalette';
-import {
-  CAT_RING_INNER,
-  HUB_RING,
-  INLAY_INNER,
-  LABEL_INNER,
-  LABEL_OUTER,
-  TW_CREAM,
-  TW_GOLD,
-  TW_GOLD_DARK,
-  TW_GOLD_LIGHT,
-  TW_INK,
-  TW_SERIF,
-} from './taiwanTokens';
+import { HUB_RING, INLAY_INNER, LABEL_INNER, LABEL_OUTER, RIM_INNER, TW_CREAM, TW_INK, TW_SERIF } from './taiwanTokens';
 
 import type { FC } from 'react';
 import type { SpinningWheelProps } from '@domains/wheel/BaseWheel/parts/types';
 
 const maxTextLength = 21;
-/** Sectors reach this many px under the cat ring so its feathered inner edge never shows a gap */
-const UNDER_RING = 6;
-
-/** Polished gold lit from the top-left */
-const goldMetal = (ctx: CanvasRenderingContext2D, center: number, radius: number): CanvasGradient => {
-  const gradient = ctx.createLinearGradient(center - radius, center - radius, center + radius, center + radius);
-  gradient.addColorStop(0, TW_GOLD_LIGHT);
-  gradient.addColorStop(0.45, TW_GOLD);
-  gradient.addColorStop(0.75, TW_GOLD_DARK);
-  gradient.addColorStop(1, TW_GOLD_LIGHT);
-
-  return gradient;
-};
+/** Sectors reach this many px under the rim so no background shows between them */
+const UNDER_RIM = 3;
 
 const glyphStyle = (style: TextStyle): { fill: string; stroke: string } => {
   if (style === 'cream') {
@@ -54,17 +29,14 @@ const glyphStyle = (style: TextStyle): { fill: string; stroke: string } => {
 };
 
 /**
- * Temple lacquer wheel: red, cream and gold sectors repeat by order, the participant
- * hue survives as a thin inlay under the ring of sleeping cats that spins with the wheel,
- * gold dividers and a gold hub ring.
+ * Temple lacquer wheel: red, cream and gold sectors repeat by order and reach almost to the
+ * edge, the participant hue survives as a thin inlay under a thin gold rim with studs, gold
+ * dividers and a gold hub ring.
  */
 const TaiwanSpinningWheel: FC<SpinningWheelProps> = (props) => {
   // families follow sector order, so they are fixed per draw pass in beforeDraw and
   // looked up per sector in drawSlice / drawText
   const palette = useMemo(() => createSectorPalette(), []);
-  // the wheel canvas is cached, so the ring photo must arrive through a re-render (a new
-  // renderer object rebuilds the cache); until then the lacquer rim stands in
-  const ringImage = useImageAsset(catRingAsset);
 
   return (
     <CanvasSpinningWheel
@@ -82,11 +54,11 @@ const TaiwanSpinningWheel: FC<SpinningWheelProps> = (props) => {
           const text = fitText(displayName || name, maxTextLength);
 
           ctx.save();
-          ctx.font = `bold ${scale(20)}px ${TW_SERIF}`;
+          ctx.font = `bold ${scale(22)}px ${TW_SERIF}`;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
 
-          // names end just inside the cat ring and shrink when a long one does not fit next to the hub
+          // names end just inside the rim and shrink when a long one does not fit next to the hub
           const { startRadius } = fitSectorText(ctx, text, layout, {
             outerRatio: LABEL_OUTER,
             innerRatio: LABEL_INNER,
@@ -113,11 +85,11 @@ const TaiwanSpinningWheel: FC<SpinningWheelProps> = (props) => {
           const { startAngle, endAngle } = item;
           const { fill, sheen, edge, inlay } = palette.colorsFor(item, getColor);
           const { center, wheelRadius } = layout;
-          const radius = wheelRadius * CAT_RING_INNER + scale(UNDER_RING);
+          const radius = wheelRadius * RIM_INNER + scale(UNDER_RIM);
 
           ctx.save();
 
-          // lacquer: darker at the hub, a glossy band two thirds out, darker again at the ring
+          // lacquer: darker at the hub, a glossy band two thirds out, darker again at the rim
           const lacquer = ctx.createRadialGradient(center, center, radius * 0.08, center, center, radius);
           lacquer.addColorStop(0, edge);
           lacquer.addColorStop(0.32, fill);
@@ -142,7 +114,7 @@ const TaiwanSpinningWheel: FC<SpinningWheelProps> = (props) => {
         },
         afterDraw(ctx, items, { layout, scale }) {
           const { center, wheelRadius } = layout;
-          const radius = wheelRadius * CAT_RING_INNER + scale(UNDER_RING);
+          const radius = wheelRadius * RIM_INNER + scale(UNDER_RIM);
           const hubRadius = wheelRadius * HUB_RING;
           const gold = goldMetal(ctx, center, wheelRadius);
 
@@ -185,7 +157,7 @@ const TaiwanSpinningWheel: FC<SpinningWheelProps> = (props) => {
           ctx.stroke();
           ctx.restore();
 
-          drawCatRing(ctx, layout, ringImage);
+          drawRim(ctx, layout);
         },
       }}
     />

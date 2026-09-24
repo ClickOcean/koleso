@@ -1,24 +1,25 @@
 import { useEffect, useRef } from 'react';
 
-import { CAT_RING_INNER, TW_SERIF } from './taiwanTokens';
+import { RIM_INNER } from './taiwanTokens';
 
 import type { CSSProperties } from 'react';
 import type { EffectsProps, WheelPartLayout } from '@domains/wheel/BaseWheel/parts/types';
 
 const FRAME_INTERVAL = 40; // 25 fps
-const MAX_SNORES = 10;
+const MAX_GLINTS = 8;
 const MAX_SPARKS = 140;
-const IDLE_SNORES_PER_SECOND = 0.8;
+const IDLE_GLINTS_PER_SECOND = 1.2;
 const SPIN_SPARKS_PER_SECOND = 60;
 /** Length of a spark's trail, in seconds of its flight */
 const SPARK_TRAIL = 0.09;
-/** Radius the snores rise from: the middle of the cat ring */
-const SNORE_RADIUS = (CAT_RING_INNER + 1) / 2;
+/** Glints flash on the middle of the gold rim */
+const GLINT_RADIUS = (RIM_INNER + 1) / 2;
 
-interface Snore {
+interface Glint {
   x: number;
   y: number;
-  drift: number;
+  size: number;
+  rotation: number;
   age: number;
   life: number;
 }
@@ -33,28 +34,28 @@ interface Spark {
 }
 
 interface EffectState {
-  snores: Snore[];
+  glints: Glint[];
   sparks: Spark[];
   /** Fractional spawn budgets so low rates still emit evenly */
-  snoreBudget: number;
+  glintBudget: number;
   sparkBudget: number;
-  /** 0..1, eases towards 1 while spinning: sparks grow, snores stop */
+  /** 0..1, eases towards 1 while spinning: sparks grow, glints fade out */
   energy: number;
 }
 
-const createState = (): EffectState => ({ snores: [], sparks: [], snoreBudget: 0, sparkBudget: 0, energy: 0 });
+const createState = (): EffectState => ({ glints: [], sparks: [], glintBudget: 0, sparkBudget: 0, energy: 0 });
 
-/** Snores come from the upper half of the ring so they rise into free space, not across the sectors */
-const createSnore = ({ center, wheelRadius }: WheelPartLayout): Snore => {
-  const angle = -Math.PI / 2 + (Math.random() * 2 - 1) * Math.PI * 0.42;
-  const radius = wheelRadius * SNORE_RADIUS;
+const createGlint = ({ center, wheelRadius, scale }: WheelPartLayout): Glint => {
+  const angle = Math.random() * 2 * Math.PI;
+  const radius = wheelRadius * GLINT_RADIUS;
 
   return {
     x: center + Math.cos(angle) * radius,
     y: center + Math.sin(angle) * radius,
-    drift: Math.cos(angle) * 10,
+    size: (5 + Math.random() * 4) * scale,
+    rotation: Math.random() * Math.PI,
     age: 0,
-    life: 2.2 + Math.random() * 0.8,
+    life: 0.6 + Math.random() * 0.4,
   };
 };
 
@@ -84,8 +85,8 @@ const canvasStyle = (layout: WheelPartLayout): CSSProperties => ({
 });
 
 /**
- * While idle a sleepy "z" floats up from the ring of cats now and then; during a spin the
- * cats wake up, the snores stop and gold sparks fly off the rim.
+ * While idle a small glint flashes on the gold rim now and then; during a spin gold sparks fly
+ * off the rim in the direction of the spin.
  */
 const TaiwanEffects = ({ layout, isSpinning }: EffectsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -131,11 +132,11 @@ const TaiwanEffects = ({ layout, isSpinning }: EffectsProps) => {
 
       state.energy += ((isSpinningRef.current ? 1 : 0) - state.energy) * Math.min(1, delta * 3);
 
-      state.snoreBudget += IDLE_SNORES_PER_SECOND * (1 - state.energy) * delta;
-      while (state.snoreBudget >= 1) {
-        state.snoreBudget -= 1;
-        if (state.snores.length < MAX_SNORES) {
-          state.snores.push(createSnore(layout));
+      state.glintBudget += IDLE_GLINTS_PER_SECOND * (1 - state.energy) * delta;
+      while (state.glintBudget >= 1) {
+        state.glintBudget -= 1;
+        if (state.glints.length < MAX_GLINTS) {
+          state.glints.push(createGlint(layout));
         }
       }
 
@@ -147,12 +148,10 @@ const TaiwanEffects = ({ layout, isSpinning }: EffectsProps) => {
         }
       }
 
-      state.snores = state.snores.filter((snore) => {
-        snore.age += delta;
-        snore.x += snore.drift * scale * delta;
-        snore.y -= 16 * scale * delta;
+      state.glints = state.glints.filter((glint) => {
+        glint.age += delta;
 
-        return snore.age < snore.life;
+        return glint.age < glint.life;
       });
 
       state.sparks = state.sparks.filter((spark) => {
@@ -166,18 +165,28 @@ const TaiwanEffects = ({ layout, isSpinning }: EffectsProps) => {
       ctx.clearRect(0, 0, canvasSize, canvasSize);
 
       ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      state.snores.forEach((snore) => {
-        const progress = snore.age / snore.life;
-        const alpha = Math.sin(progress * Math.PI) * 0.9;
-        ctx.font = `italic bold ${(11 + progress * 9) * scale}px ${TW_SERIF}`;
-        ctx.lineWidth = 3 * scale;
-        ctx.strokeStyle = `rgba(40, 10, 6, ${alpha * 0.8})`;
-        ctx.strokeText('z', snore.x, snore.y);
-        ctx.fillStyle = `rgba(255, 244, 222, ${alpha})`;
-        ctx.fillText('z', snore.x, snore.y);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+      state.glints.forEach((glint) => {
+        const alpha = Math.sin((glint.age / glint.life) * Math.PI);
+        const reach = glint.size * (0.6 + alpha * 0.4);
+
+        ctx.save();
+        ctx.translate(glint.x, glint.y);
+        ctx.rotate(glint.rotation);
+        ctx.strokeStyle = `rgba(255, 246, 214, ${alpha * 0.95})`;
+        ctx.lineWidth = Math.max(0.8, 1.2 * scale);
+        ctx.beginPath();
+        ctx.moveTo(-reach, 0);
+        ctx.lineTo(reach, 0);
+        ctx.moveTo(0, -reach);
+        ctx.lineTo(0, reach);
+        ctx.stroke();
+        ctx.fillStyle = `rgba(255, 252, 235, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(0, 0, glint.size * 0.22, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.restore();
       });
       ctx.restore();
 

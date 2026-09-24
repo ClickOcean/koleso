@@ -10,11 +10,11 @@ import type { PointerProps } from '@domains/wheel/BaseWheel/parts/types';
 
 /**
  * The theme keeps only a small gap under the title (`TW_TITLE_GAP`), so the paw sticks out over
- * the rim by at most `TW_PAW_PROTRUSION` and reaches `DIP` into the wheel, across the thin cat
- * ring (0.895 R), with the toe beans at the edge of the sectors.
+ * the rim by at most `TW_PAW_PROTRUSION` and gets its length from reaching `DIP` into the wheel:
+ * across the gold rim and onto the outer part of the top sector (its name is in the title anyway).
  */
 const PROTRUSION_RATIO = 0.03;
-const DIP = 46;
+const DIP = 120;
 
 type LoadState = 'loading' | 'ready' | 'missing';
 

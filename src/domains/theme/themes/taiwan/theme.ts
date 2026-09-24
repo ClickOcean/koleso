@@ -10,7 +10,7 @@ import { TW_ASSETS, TW_CREAM, TW_RED, TW_SERIF, TW_TITLE_GAP } from './taiwanTok
 import './taiwan.css';
 
 /**
- * Taiwan: temple-lacquer wheel with a ring of sleeping Houtong cats, a cat paw for a pointer,
+ * Taiwan: temple-lacquer wheel with a thin gold rim, a Houtong cat in the hub, a cat paw for a pointer,
  * photos of Taipei and the strait in rotation, Pelosi and a weeping Buffett, the government
  * jet of 2 August 2022 and a news crawl at the bottom.
  */
