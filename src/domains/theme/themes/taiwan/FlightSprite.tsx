@@ -38,8 +38,8 @@ const FlightSprite = ({ boxRef, captionRef, plane, caption, passenger }: Props) 
             aspectRatio: '1',
             transform: 'translate(-50%, -50%)',
             borderRadius: '50%',
-            border: `3px solid ${TW_CREAM}`,
-            boxShadow: `0 0 0 2px ${TW_GOLD}, 0 4px 10px rgba(0, 0, 0, 0.6)`,
+            border: `4px solid ${TW_CREAM}`,
+            boxShadow: `0 0 0 3px ${TW_GOLD}, 0 6px 14px rgba(0, 0, 0, 0.6)`,
           }}
         />
       )}
@@ -48,17 +48,17 @@ const FlightSprite = ({ boxRef, captionRef, plane, caption, passenger }: Props) 
       ref={captionRef}
       style={{
         display: 'inline-block',
-        marginTop: 6,
+        marginTop: 8,
         marginLeft: '12%',
         opacity: 0,
         whiteSpace: 'nowrap',
         fontFamily: TW_SERIF,
-        fontSize: 15,
+        fontSize: 20,
         fontWeight: 700,
         letterSpacing: '0.06em',
         color: TW_CREAM,
-        borderLeft: `3px solid ${TW_GOLD}`,
-        padding: '2px 10px',
+        borderLeft: `4px solid ${TW_GOLD}`,
+        padding: '3px 14px',
         background: 'rgba(12, 5, 5, 0.6)',
         textShadow: '0 1px 3px rgba(0, 0, 0, 0.8)',
       }}

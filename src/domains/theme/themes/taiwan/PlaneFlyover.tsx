@@ -10,8 +10,8 @@ import type { WheelFrame } from './useWheelFrame';
 
 const FLIGHT_MS = PLANE_FLIGHT_S * 1000;
 /** Plane width at the end of the approach, share of the window width, capped in px */
-const PLANE_WIDTH = 0.22;
-const PLANE_MAX_WIDTH = 420;
+const PLANE_WIDTH = 0.33;
+const PLANE_MAX_WIDTH = 630;
 const START_SCALE = 0.5;
 
 interface FlightRefs {
